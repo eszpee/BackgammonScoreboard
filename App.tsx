@@ -9,6 +9,7 @@ import {
   Alert,
   Platform,
 } from 'react-native';
+import KeepAwake from 'react-native-keep-awake';
 
 // Simple in-memory persistence (survives until app is force-quit)
 let savedMatchLength = 5;
@@ -96,6 +97,7 @@ function App() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <KeepAwake />
       <StatusBar barStyle="light-content" backgroundColor="#1a1a1a" />
 
       <View style={styles.mainContent}>
