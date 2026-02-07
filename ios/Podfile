@@ -1,3 +1,6 @@
+# Fix for nvm Node path
+ENV['NODE_BINARY'] = `bash -c "source ~/.nvm/nvm.sh && which node"`.strip
+
 # Resolve react_native_pods.rb with node to allow for hoisting
 require Pod::Executable.execute_command('node', ['-p',
   'require.resolve(
@@ -14,7 +17,7 @@ if linkage != nil
   use_frameworks! :linkage => linkage.to_sym
 end
 
-target 'MyFirstApp' do
+target 'BackgammonScoreboard' do
   config = use_native_modules!
 
   use_react_native!(
