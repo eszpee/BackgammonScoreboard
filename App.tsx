@@ -1,27 +1,75 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   SafeAreaView,
   Text,
   View,
-  TouchableOpacity,
+  Pressable,
   StyleSheet,
   StatusBar,
   Alert,
-  Platform,
+  Animated,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import HapticFeedback from 'react-native-haptic-feedback';
 import KeepAwake from 'react-native-keep-awake';
 
-// Simple in-memory persistence (survives until app is force-quit)
-let savedMatchLength = 5;
+const STORAGE_KEY = 'matchState';
+const HAPTIC_OPTIONS = { enableVibrateFallback: true, ignoreAndroidSystemSettings: false };
+
+type CrawfordState = 'none' | 'crawford' | 'post-crawford';
+
+interface MatchState {
+  player1Score: number;
+  player2Score: number;
+  matchLength: number;
+  crawfordState: CrawfordState;
+}
 
 function App() {
   const [player1Score, setPlayer1Score] = useState(0);
   const [player2Score, setPlayer2Score] = useState(0);
-  const [matchLength, setMatchLength] = useState(savedMatchLength);
-  const [crawfordState, setCrawfordState] = useState<'none' | 'crawford' | 'post-crawford'>('none');
+  const [matchLength, setMatchLength] = useState(5);
+  const [crawfordState, setCrawfordState] = useState<CrawfordState>('none');
+
+  const score1Anim = useRef(new Animated.Value(1)).current;
+  const score2Anim = useRef(new Animated.Value(1)).current;
+
+  // Restore state on launch
+  useEffect(() => {
+    AsyncStorage.getItem(STORAGE_KEY).then(raw => {
+      if (!raw) return;
+      try {
+        const saved: MatchState = JSON.parse(raw);
+        setPlayer1Score(saved.player1Score);
+        setPlayer2Score(saved.player2Score);
+        setMatchLength(saved.matchLength);
+        setCrawfordState(saved.crawfordState);
+      } catch {}
+    });
+  }, []);
+
+  // Persist state on every change
+  useEffect(() => {
+    AsyncStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ player1Score, player2Score, matchLength, crawfordState }),
+    );
+  }, [player1Score, player2Score, matchLength, crawfordState]);
+
+  const triggerBounce = (anim: Animated.Value) => {
+    Animated.sequence([
+      Animated.timing(anim, { toValue: 1.15, duration: 80, useNativeDriver: true }),
+      Animated.spring(anim, { toValue: 1, useNativeDriver: true }),
+    ]).start();
+  };
+
+  const resetScores = () => {
+    setPlayer1Score(0);
+    setPlayer2Score(0);
+    setCrawfordState('none');
+  };
 
   const addPoint = (player: number, points: number) => {
-    // If we're in Crawford, any point scored moves to post-crawford
     if (crawfordState === 'crawford') {
       setCrawfordState('post-crawford');
     }
@@ -29,69 +77,90 @@ function App() {
     if (player === 1) {
       const newScore = player1Score + points;
       setPlayer1Score(newScore);
+      triggerBounce(score1Anim);
 
-      // Check if we should enter Crawford
       if (crawfordState === 'none' && newScore === matchLength - 1 && player2Score < matchLength - 1) {
         setCrawfordState('crawford');
       }
 
       if (newScore >= matchLength) {
+        HapticFeedback.trigger('notificationSuccess', HAPTIC_OPTIONS);
         Alert.alert('Match Over!', `Left Player wins ${newScore} to ${player2Score}!`, [
-          { text: 'New Match', onPress: () => {
-            setPlayer1Score(0);
-            setPlayer2Score(0);
-            setCrawfordState('none');
-          }}
+          { text: 'New Match', onPress: resetScores },
         ]);
       }
     } else {
       const newScore = player2Score + points;
       setPlayer2Score(newScore);
+      triggerBounce(score2Anim);
 
-      // Check if we should enter Crawford
       if (crawfordState === 'none' && newScore === matchLength - 1 && player1Score < matchLength - 1) {
         setCrawfordState('crawford');
       }
 
       if (newScore >= matchLength) {
+        HapticFeedback.trigger('notificationSuccess', HAPTIC_OPTIONS);
         Alert.alert('Match Over!', `Right Player wins ${newScore} to ${player1Score}!`, [
-          { text: 'New Match', onPress: () => {
-            setPlayer1Score(0);
-            setPlayer2Score(0);
-            setCrawfordState('none');
-          }}
+          { text: 'New Match', onPress: resetScores },
         ]);
       }
     }
   };
 
+  const decreasePoint = (player: number) => {
+    const currentScore = player === 1 ? player1Score : player2Score;
+    if (currentScore === 0) return;
+
+    Alert.alert('Decrease point?', '', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Decrease',
+        onPress: () => {
+          const newScore = currentScore - 1;
+          const p1New = player === 1 ? newScore : player1Score;
+          const p2New = player === 2 ? newScore : player2Score;
+
+          if (player === 1) {
+            setPlayer1Score(newScore);
+          } else {
+            setPlayer2Score(newScore);
+          }
+
+          if (p1New < matchLength - 1 && p2New < matchLength - 1) {
+            // Neither player at match-1: Crawford never happened at these scores
+            setCrawfordState('none');
+          } else if (crawfordState === 'post-crawford') {
+            // One player still at match-1, going backward: revert to Crawford game
+            setCrawfordState('crawford');
+          }
+          // else: already 'crawford' with one player still at match-1, keep it
+        },
+      },
+    ]);
+  };
+
+  const MATCH_LENGTHS = [3, 5, 7, 9, 11, 13, 15, 17, 21];
+
   const handleMatchButtonPress = () => {
-    // If match hasn't started (0:0), cycle match length
     if (player1Score === 0 && player2Score === 0) {
-      const lengths = [3, 5, 7, 9, 11, 13, 15, 17, 21];
-      const currentIndex = lengths.indexOf(matchLength);
-      const nextIndex = (currentIndex + 1) % lengths.length;
-      const newMatchLength = lengths[nextIndex];
-      setMatchLength(newMatchLength);
-      // Save to memory (persists during app session)
-      savedMatchLength = newMatchLength;
+      const currentIndex = MATCH_LENGTHS.indexOf(matchLength);
+      setMatchLength(MATCH_LENGTHS[(currentIndex + 1) % MATCH_LENGTHS.length]);
     } else {
-      // Otherwise, confirm before starting a new match
       Alert.alert(
         'New Match?',
         'Start a new match and reset scores?',
         [
           { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'New Match',
-            onPress: () => {
-              setPlayer1Score(0);
-              setPlayer2Score(0);
-              setCrawfordState('none');
-            }
-          }
-        ]
+          { text: 'New Match', onPress: resetScores },
+        ],
       );
+    }
+  };
+
+  const handleMatchLongPress = () => {
+    if (player1Score === 0 && player2Score === 0) {
+      const currentIndex = MATCH_LENGTHS.indexOf(matchLength);
+      setMatchLength(MATCH_LENGTHS[(currentIndex - 1 + MATCH_LENGTHS.length) % MATCH_LENGTHS.length]);
     }
   };
 
@@ -102,25 +171,34 @@ function App() {
 
       <View style={styles.mainContent}>
         {/* Player 1 Section - Left Side */}
-        <TouchableOpacity
-          style={styles.playerSection}
+        <Pressable
+          style={({ pressed }) => [styles.playerSection, { opacity: pressed ? 0.7 : 1 }]}
+          onPressIn={() => HapticFeedback.trigger('selection', HAPTIC_OPTIONS)}
           onPress={() => addPoint(1, 1)}
-          activeOpacity={0.7}
+          onLongPress={() => decreasePoint(1)}
         >
           <View style={styles.scoreBox}>
-            <Text style={styles.scoreText}>{player1Score}</Text>
+            <Animated.Text
+              style={[styles.scoreText, { transform: [{ scale: score1Anim }] }]}
+              adjustsFontSizeToFit
+              numberOfLines={1}
+              minimumFontScale={0.4}
+            >
+              {player1Score}
+            </Animated.Text>
           </View>
-        </TouchableOpacity>
+        </Pressable>
 
         {/* Center Section */}
         <View style={styles.centerSection}>
-          <TouchableOpacity
-            style={styles.matchLengthButton}
+          <Pressable
+            style={({ pressed }) => [styles.matchLengthButton, { opacity: pressed ? 0.7 : 1 }]}
             onPress={handleMatchButtonPress}
+            onLongPress={handleMatchLongPress}
           >
             <Text style={styles.matchText}>MATCH TO</Text>
             <Text style={styles.matchNumber}>{matchLength}</Text>
-          </TouchableOpacity>
+          </Pressable>
 
           <View style={styles.crawfordContainer}>
             {crawfordState !== 'none' && (
@@ -134,15 +212,23 @@ function App() {
         </View>
 
         {/* Player 2 Section - Right Side */}
-        <TouchableOpacity
-          style={styles.playerSection}
+        <Pressable
+          style={({ pressed }) => [styles.playerSection, { opacity: pressed ? 0.7 : 1 }]}
+          onPressIn={() => HapticFeedback.trigger('selection', HAPTIC_OPTIONS)}
           onPress={() => addPoint(2, 1)}
-          activeOpacity={0.7}
+          onLongPress={() => decreasePoint(2)}
         >
           <View style={styles.scoreBox}>
-            <Text style={styles.scoreText}>{player2Score}</Text>
+            <Animated.Text
+              style={[styles.scoreText, { transform: [{ scale: score2Anim }] }]}
+              adjustsFontSizeToFit
+              numberOfLines={1}
+              minimumFontScale={0.4}
+            >
+              {player2Score}
+            </Animated.Text>
           </View>
-        </TouchableOpacity>
+        </Pressable>
       </View>
     </SafeAreaView>
   );
