@@ -33,23 +33,38 @@ function App() {
 
   const score1Anim = useRef(new Animated.Value(1)).current;
   const score2Anim = useRef(new Animated.Value(1)).current;
+  const isRestored = useRef(false);
+  const stateRef = useRef<MatchState>({ player1Score: 0, player2Score: 0, matchLength: 5, crawfordState: 'none' });
 
   // Restore state on launch
   useEffect(() => {
     AsyncStorage.getItem(STORAGE_KEY).then(raw => {
-      if (!raw) return;
-      try {
-        const saved: MatchState = JSON.parse(raw);
-        setPlayer1Score(saved.player1Score);
-        setPlayer2Score(saved.player2Score);
-        setMatchLength(saved.matchLength);
-        setCrawfordState(saved.crawfordState);
-      } catch {}
+      if (raw) {
+        try {
+          const saved = JSON.parse(raw);
+          if (
+            typeof saved.player1Score === 'number' &&
+            typeof saved.player2Score === 'number' &&
+            typeof saved.matchLength === 'number' &&
+            ['none', 'crawford', 'post-crawford'].includes(saved.crawfordState)
+          ) {
+            setPlayer1Score(saved.player1Score);
+            setPlayer2Score(saved.player2Score);
+            setMatchLength(saved.matchLength);
+            setCrawfordState(saved.crawfordState as CrawfordState);
+          }
+        } catch {
+          console.warn('[BackgammonScoreboard] Failed to parse saved match state');
+        }
+      }
+      isRestored.current = true;
     });
   }, []);
 
-  // Persist state on every change
+  // Keep stateRef in sync and persist state on every change
   useEffect(() => {
+    stateRef.current = { player1Score, player2Score, matchLength, crawfordState };
+    if (!isRestored.current) return;
     AsyncStorage.setItem(
       STORAGE_KEY,
       JSON.stringify({ player1Score, player2Score, matchLength, crawfordState }),
@@ -116,9 +131,12 @@ function App() {
       {
         text: 'Decrease',
         onPress: () => {
-          const newScore = currentScore - 1;
-          const p1New = player === 1 ? newScore : player1Score;
-          const p2New = player === 2 ? newScore : player2Score;
+          const { player1Score: p1, player2Score: p2, matchLength: ml, crawfordState: cs } = stateRef.current;
+          const latestScore = player === 1 ? p1 : p2;
+          if (latestScore <= 0) return;
+          const newScore = latestScore - 1;
+          const p1New = player === 1 ? newScore : p1;
+          const p2New = player === 2 ? newScore : p2;
 
           if (player === 1) {
             setPlayer1Score(newScore);
@@ -126,10 +144,10 @@ function App() {
             setPlayer2Score(newScore);
           }
 
-          if (p1New < matchLength - 1 && p2New < matchLength - 1) {
+          if (p1New < ml - 1 && p2New < ml - 1) {
             // Neither player at match-1: Crawford never happened at these scores
             setCrawfordState('none');
-          } else if (crawfordState === 'post-crawford') {
+          } else if (cs === 'post-crawford') {
             // One player still at match-1, going backward: revert to Crawford game
             setCrawfordState('crawford');
           }
