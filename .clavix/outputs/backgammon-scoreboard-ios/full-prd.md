@@ -14,14 +14,14 @@ The app already exists in a functional but rudimentary state. This PRD covers wh
 
 **Already implemented (keep and polish):**
 1. **Tap to score** — Tap left or right player area to add 1 point. Tap as many times as needed (gammon = 2 taps, backgammon = 3 taps).
-2. **Match length cycling** — Tap center button at 0-0 to cycle through standard match lengths (3, 5, 7, 9, 11, 13, 15, 17, 21).
+2. **Match length cycling** — Tap center button at 0-0 to cycle forward through standard match lengths (3, 5, 7, 9, 11, 13, 15, 17, 21). Long press at 0-0 cycles backward through the same list. No confirmation needed for either gesture.
 3. **New match** — Tap center button mid-match to trigger a confirmation and reset.
 4. **Crawford rule** — Automatically tracks Crawford and Post-Crawford states.
 5. **Keep awake** — Screen stays on during a match.
 
 **New for this release:**
-6. **Undo last point** — Long press on a player's side to undo the last point scored for that player. No confirmation dialog needed; the gesture itself is the confirmation.
-7. **Haptic feedback** — Subtle haptic on every score tap. Distinct, stronger haptic on match win.
+6. **Decrease point** — Long press on a player's side to decrease that player's score by 1. A confirmation dialog is shown before the decrease is applied (intentional friction — this is a rare corrective action, not a primary interaction). Crawford state is recalculated after the decrease: if neither player is at match-1, revert to `none`; if one player remains at match-1 and state was `post-crawford`, revert to `crawford`; otherwise leave state unchanged.
+7. **Haptic feedback** — Immediate haptic fires on touch-down (`onPressIn`) via iOS Taptic Engine (`react-native-haptic-feedback`, `selection` preset). Fires before the score is registered, giving instant tactile confirmation. Distinct `notificationSuccess` pattern on match win.
 8. **Per-game tally (optional, setting)** — Below each score, display tally marks representing games won in the current match. One mark per point scored; each player has their own tally. Tally style is traditional paper scoreboard: four vertical strokes followed by a diagonal cross for the fifth, then a new group starts (e.g., score of 7 = one full group of 5 + two singles). Toggled on/off via iOS Settings app (Settings.bundle). Default: on.
 9. **Score animation** — When a point is added, the score number animates subtly (scale bounce or similar) to confirm the tap and add satisfying feedback.
 10. **State persistence** — Silently restore match state (scores, match length, Crawford state) when the app is reopened after being force-quit. No prompt; just restore.
@@ -50,7 +50,7 @@ The app already exists in a functional but rudimentary state. This PRD covers wh
 - **Platform:** iOS only (iPhone, landscape orientation)
 - **Framework:** React Native (existing codebase)
 - **Persistence:** AsyncStorage or react-native-mmkv — restore state silently on launch
-- **Haptics:** Built-in `Vibration` API is sufficient; escalate to `react-native-haptic-feedback` only if Taptic Engine patterns are needed
+- **Haptics:** `react-native-haptic-feedback` for iOS Taptic Engine patterns. `selection` preset on `onPressIn` for instant score confirmation. `notificationSuccess` on match win. Fires on touch-down, not touch-up.
 - **Animation:** React Native's `Animated` API or `react-native-reanimated` for score bounce
 - **Tally rendering:** Computed from score state; rendered as traditional tally marks (4 vertical strokes + 1 diagonal cross per group of 5) below each score number. Visibility controlled by a boolean setting read from iOS Settings app via `Settings.bundle` + `NSUserDefaults`.
 - **Settings:** iOS Settings app via `Settings.bundle` (a native Xcode mechanism requiring no in-app UI). Initial setting: "Show Tally" toggle (default on). This pattern can host future settings without any in-app screen.

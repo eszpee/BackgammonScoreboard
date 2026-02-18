@@ -18,22 +18,27 @@
 
 ## Phase 1: Code Cleanup
 
-- [ ] **Remove unused imports** (ref: PRD Additional Context)
+- [x] **Remove unused imports** (ref: PRD Additional Context)
   Task ID: `phase-1-cleanup-01`
   > **Implementation**: Edit `App.tsx` line 1.
   > **Details**: Remove `useEffect` and `useRef` from the React import. Remove `Platform` from the `react-native` import. Leave all other imports intact.
 
-- [ ] **Remove unused dependency** (ref: PRD Additional Context)
+- [x] **Remove unused dependency** (ref: PRD Additional Context)
   Task ID: `phase-1-cleanup-02`
   > **Implementation**: Run `npm uninstall @react-native/new-app-screen` in the project root.
   > **Details**: This is the React Native template welcome screen package imported nowhere in the project. Verify `package.json` no longer lists it after uninstalling.
 
-- [ ] **Replace TouchableOpacity with Pressable** (ref: PRD polish)
+- [x] **Add long press to cycle match length backward** (ref: PRD Feature 2)
+  Task ID: `phase-1-cleanup-05`
+  > **Implementation**: Edit `App.tsx`.
+  > **Details**: Add `handleMatchLongPress` function: if scores are both 0, find the current index in `lengths`, set matchLength to `lengths[(currentIndex - 1 + lengths.length) % lengths.length]`. Wire `onLongPress={handleMatchLongPress}` on the center `matchLengthButton` Pressable. Long press mid-match does nothing (only forward cycle and New Match prompt are available then).
+
+- [x] **Replace TouchableOpacity with Pressable** (ref: PRD polish)
   Task ID: `phase-1-cleanup-03`
   > **Implementation**: Edit `App.tsx`. Replace all three `TouchableOpacity` instances (player 1 section, player 2 section, match length button) with `Pressable`.
   > **Details**: Use Pressable's `style` prop with the pressed state to replicate the opacity feedback: `style={({ pressed }) => [styles.playerSection, { opacity: pressed ? 0.7 : 1 }]}`. Remove `activeOpacity` prop (Pressable doesn't use it). Keep `onPress` and add `onLongPress` placeholder (wired up in Phase 3).
 
-- [ ] **Add font safety to score text** (ref: PRD Feature 11)
+- [x] **Add font safety to score text** (ref: PRD Feature 11)
   Task ID: `phase-1-cleanup-04`
   > **Implementation**: Edit `App.tsx`. Find both score `<Text style={styles.scoreText}>` elements (lines 111 and 143).
   > **Details**: Add `adjustsFontSizeToFit={true}`, `numberOfLines={1}`, and `minimumFontScale={0.4}` props to both. This prevents overflow at high scores (e.g., match to 21 on small devices) while keeping the large font on modern iPhones.
@@ -42,12 +47,12 @@
 
 ## Phase 2: State Persistence
 
-- [ ] **Install AsyncStorage** (ref: PRD Technical Requirements)
+- [x] **Install AsyncStorage** (ref: PRD Technical Requirements)
   Task ID: `phase-2-persistence-01`
   > **Implementation**: Run `npm install @react-native-async-storage/async-storage` then `cd ios && pod install`.
   > **Details**: This is the standard RN community package for persistent key-value storage. Required for saving match state across app restarts. Verify it appears in `package.json` dependencies after install.
 
-- [ ] **Implement match state persistence** (ref: PRD Feature 10)
+- [x] **Implement match state persistence** (ref: PRD Feature 10)
   Task ID: `phase-2-persistence-02`
   > **Implementation**: Edit `App.tsx`.
   > **Details**:
@@ -61,35 +66,41 @@
 
 ## Phase 3: Undo
 
-- [ ] **Implement undo state snapshot** (ref: PRD Feature 6)
-  Task ID: `phase-3-undo-01`
+- [x] **Implement decrease point** (ref: PRD Feature 6)
+  Task ID: `phase-3-decrease-01`
   > **Implementation**: Edit `App.tsx`.
   > **Details**:
-  > 1. Add a `useRef` to hold the previous state snapshot: `const previousState = useRef<{player1Score: number, player2Score: number, crawfordState: 'none'|'crawford'|'post-crawford'} | null>(null)`.
-  > 2. At the top of `addPoint`, before any state updates, save the current state into `previousState.current`.
-  > 3. Add an `undoLastPoint` function: if `previousState.current` is not null, show an `Alert.alert('Undo last point?', '', [{ text: 'Cancel', style: 'cancel' }, { text: 'Undo', onPress: () => { restore previousState.current; set previousState.current = null; } }])`. Only one level of undo.
-  > 4. Wire `undoLastPoint` to `onLongPress` on **both** player `Pressable` components (long press on either side — this is simpler and correctly handles Crawford state reversions).
-  > 5. If `previousState.current` is null (nothing to undo), the long press does nothing silently.
-  > 6. Note: `matchLength` is intentionally excluded from undo scope; match length changes are deliberate.
+  > 1. Remove `previousState` useRef and `undoLastPoint` function entirely.
+  > 2. Add a `decreasePoint(player: number)` function: if the player's current score is 0, return early (can't go below 0). Otherwise decrement that player's score by 1.
+  > 3. After decrement, compute `p1New` and `p2New` (the new scores for both players). Apply Crawford reversal in this order: (a) if both are below `matchLength - 1`, call `setCrawfordState('none')` — Crawford hasn't been earned yet at these scores; (b) else if `crawfordState === 'post-crawford'`, call `setCrawfordState('crawford')` — one player is still at match-1 so the Crawford game is being replayed; (c) else leave `crawfordState` unchanged.
+  > 4. Wire `onLongPress={() => decreasePoint(1)}` on the left player `Pressable` and `onLongPress={() => decreasePoint(2)}` on the right. Each side only decreases its own score.
+  > 5. Show a confirmation dialog before applying the decrease: `Alert.alert('Decrease point?', '', [{ text: 'Cancel', style: 'cancel' }, { text: 'Decrease', onPress: () => { /* apply decrement + Crawford check */ } }])`. This adds intentional friction since decrease is a rare corrective action, not a primary gesture.
 
 ---
 
 ## Phase 4: Haptic Feedback
 
-- [ ] **Add haptic feedback on score and match win** (ref: PRD Feature 7)
+- [x] **Install react-native-haptic-feedback** (ref: PRD Technical Requirements)
+  Task ID: `phase-4-haptics-dep`
+  > **Implementation**: Run `npm install react-native-haptic-feedback` then `cd ios && pod install`.
+  > **Details**: Provides access to iOS Taptic Engine presets (`selection`, `impactLight`, `notificationSuccess`, etc.). Needed for instant, lightweight haptics that the built-in `Vibration` API cannot achieve. Verify it appears in `package.json` after install.
+
+- [x] **Add haptic feedback on score and match win** (ref: PRD Feature 7)
   Task ID: `phase-4-haptics-01`
   > **Implementation**: Edit `App.tsx`.
   > **Details**:
-  > 1. Add `Vibration` to the `react-native` import (it's already available, just needs to be imported).
-  > 2. In `addPoint`, after updating the score but before the match-win Alert, call `Vibration.vibrate(10)` for a subtle tap feedback.
-  > 3. For match win, use a distinct pattern: `Vibration.vibrate([0, 30, 60, 30])` (short-pause-short pattern) just before the Alert fires. Place this inside both the player 1 and player 2 win branches.
-  > 4. No haptic on undo — silent feels more appropriate.
+  > 1. Remove `Vibration` from the `react-native` import.
+  > 2. Add `import HapticFeedback from 'react-native-haptic-feedback'` at the top.
+  > 3. Add `const HAPTIC_OPTIONS = { enableVibrateFallback: true, ignoreAndroidSystemSettings: false }` constant.
+  > 4. On both player `Pressable` components, add `onPressIn={() => HapticFeedback.trigger('selection', HAPTIC_OPTIONS)}`. This fires immediately on touch-down, before the score is registered.
+  > 5. In `addPoint`, remove the old `Vibration.vibrate(10)` calls. For match win, replace `Vibration.vibrate([0, 30, 60, 30])` with `HapticFeedback.trigger('notificationSuccess', HAPTIC_OPTIONS)` before the Alert fires.
+  > 6. The `onPressIn` haptic fires for both regular press and long press — this is intentional. No separate haptic inside `decreasePoint`.
 
 ---
 
 ## Phase 5: Score Animation
 
-- [ ] **Add score bounce animation on point scored** (ref: PRD Feature 9)
+- [x] **Add score bounce animation on point scored** (ref: PRD Feature 9)
   Task ID: `phase-5-animation-01`
   > **Implementation**: Edit `App.tsx`.
   > **Details**:
@@ -103,19 +114,19 @@
 
 ## Phase 6: iOS / App Store Prep
 
-- [ ] **Fix Info.plist: remove location permission** (ref: PRD App Store Blocker #14)
+- [x] **Fix Info.plist: remove location permission** (ref: PRD App Store Blocker #14)
   Task ID: `phase-7-appstore-01`
   > **Implementation**: Edit `ios/BackgammonScoreboard/Info.plist`.
   > **Details**: Remove lines 34-35 — the `<key>NSLocationWhenInUseUsageDescription</key>` and its empty `<string></string>` value. This empty permission string will cause App Store rejection.
 
-- [ ] **Fix Info.plist: add required keys** (ref: PRD Recommended #18, #19)
+- [x] **Fix Info.plist: add required keys** (ref: PRD Recommended #18, #19)
   Task ID: `phase-7-appstore-02`
   > **Implementation**: Edit `ios/BackgammonScoreboard/Info.plist`.
   > **Details**: Add two keys before the closing `</dict>`:
   > 1. `<key>UIRequiresFullScreen</key><true/>` — prevents iPad split-screen from breaking the landscape layout.
   > 2. `<key>UIUserInterfaceStyle</key><string>Dark</string>` — forces dark mode system-wide for this app, preventing the status bar or any system alerts from going light.
 
-- [ ] **Fix LaunchScreen.storyboard** (ref: PRD App Store Blocker #13)
+- [x] **Fix LaunchScreen.storyboard** (ref: PRD App Store Blocker #13)
   Task ID: `phase-7-appstore-03`
   > **Implementation**: Edit `ios/BackgammonScoreboard/LaunchScreen.storyboard`.
   > **Details**:
