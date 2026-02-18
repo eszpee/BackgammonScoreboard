@@ -10,3 +10,7 @@ App Store submission requires: custom app icon (1024×1024 master), launch scree
 
 *Generated with Clavix Planning Mode*
 *Generated: 2026-02-18T00:00:00Z*
+
+## Related Files
+- Full PRD: `.clavix/outputs/backgammon-scoreboard-ios/full-prd.md`
+- Implementation tasks: `.clavix/outputs/backgammon-scoreboard-ios/tasks.md`

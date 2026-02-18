@@ -96,3 +96,7 @@ The app already exists in a functional but rudimentary state. This PRD covers wh
 
 *Generated with Clavix Planning Mode*
 *Generated: 2026-02-18T00:00:00Z*
+
+## Related Files
+- Quick PRD: `.clavix/outputs/backgammon-scoreboard-ios/quick-prd.md`
+- Implementation tasks: `.clavix/outputs/backgammon-scoreboard-ios/tasks.md`
