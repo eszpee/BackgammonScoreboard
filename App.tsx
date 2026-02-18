@@ -15,6 +15,7 @@ import KeepAwake from 'react-native-keep-awake';
 
 const STORAGE_KEY = 'matchState';
 const HAPTIC_OPTIONS = { enableVibrateFallback: true, ignoreAndroidSystemSettings: false };
+const MATCH_LENGTHS = [3, 5, 7, 9, 11, 13, 15, 17, 21];
 
 type CrawfordState = 'none' | 'crawford' | 'post-crawford';
 
@@ -23,6 +24,16 @@ interface MatchState {
   player2Score: number;
   matchLength: number;
   crawfordState: CrawfordState;
+}
+
+function CoilBinding({ count = 14 }: { count?: number }) {
+  return (
+    <View style={styles.coilRow}>
+      {Array.from({ length: count }).map((_, i) => (
+        <View key={i} style={styles.coilLoop} />
+      ))}
+    </View>
+  );
 }
 
 function App() {
@@ -157,8 +168,6 @@ function App() {
     ]);
   };
 
-  const MATCH_LENGTHS = [3, 5, 7, 9, 11, 13, 15, 17, 21];
-
   const handleMatchButtonPress = () => {
     if (player1Score === 0 && player2Score === 0) {
       const currentIndex = MATCH_LENGTHS.indexOf(matchLength);
@@ -185,17 +194,18 @@ function App() {
   return (
     <SafeAreaView style={styles.container}>
       <KeepAwake />
-      <StatusBar barStyle="light-content" backgroundColor="#1a1a1a" />
+      <StatusBar barStyle="dark-content" backgroundColor="#e2e2e4" />
 
       <View style={styles.mainContent}>
-        {/* Player 1 Section - Left Side */}
+        {/* Player 1 Panel */}
         <Pressable
-          style={({ pressed }) => [styles.playerSection, { opacity: pressed ? 0.7 : 1 }]}
+          style={({ pressed }) => [styles.panelWrapper, { opacity: pressed ? 0.84 : 1 }]}
           onPressIn={() => HapticFeedback.trigger('selection', HAPTIC_OPTIONS)}
           onPress={() => addPoint(1, 1)}
           onLongPress={() => decreasePoint(1)}
         >
-          <View style={styles.scoreBox}>
+          <CoilBinding />
+          <View style={styles.scoreCard}>
             <Animated.Text
               style={[styles.scoreText, { transform: [{ scale: score1Anim }] }]}
               adjustsFontSizeToFit
@@ -207,36 +217,35 @@ function App() {
           </View>
         </Pressable>
 
-        {/* Center Section */}
-        <View style={styles.centerSection}>
-          <Pressable
-            style={({ pressed }) => [styles.matchLengthButton, { opacity: pressed ? 0.7 : 1 }]}
-            onPress={handleMatchButtonPress}
-            onLongPress={handleMatchLongPress}
-          >
-            <Text style={styles.matchText}>MATCH TO</Text>
-            <Text style={styles.matchNumber}>{matchLength}</Text>
-          </Pressable>
-
-          <View style={styles.crawfordContainer}>
+        {/* Center Panel */}
+        <Pressable
+          style={({ pressed }) => [styles.centerWrapper, { opacity: pressed ? 0.84 : 1 }]}
+          onPress={handleMatchButtonPress}
+          onLongPress={handleMatchLongPress}
+        >
+          <CoilBinding count={6} />
+          <View style={styles.centerCard}>
+            <Text style={styles.matchLabel}>Match</Text>
+            <Text style={styles.matchLabel}>to {matchLength}</Text>
             {crawfordState !== 'none' && (
-              <View style={styles.crawfordIndicator}>
+              <View style={styles.crawfordBadge}>
                 <Text style={styles.crawfordText}>
                   {crawfordState === 'crawford' ? 'CRAWFORD' : 'POST CRAWFORD'}
                 </Text>
               </View>
             )}
           </View>
-        </View>
+        </Pressable>
 
-        {/* Player 2 Section - Right Side */}
+        {/* Player 2 Panel */}
         <Pressable
-          style={({ pressed }) => [styles.playerSection, { opacity: pressed ? 0.7 : 1 }]}
+          style={({ pressed }) => [styles.panelWrapper, { opacity: pressed ? 0.84 : 1 }]}
           onPressIn={() => HapticFeedback.trigger('selection', HAPTIC_OPTIONS)}
           onPress={() => addPoint(2, 1)}
           onLongPress={() => decreasePoint(2)}
         >
-          <View style={styles.scoreBox}>
+          <CoilBinding />
+          <View style={styles.scoreCard}>
             <Animated.Text
               style={[styles.scoreText, { transform: [{ scale: score2Anim }] }]}
               adjustsFontSizeToFit
@@ -255,103 +264,104 @@ function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#e2e2e4',
   },
   mainContent: {
     flex: 1,
     flexDirection: 'row',
-    padding: 20,
-    gap: 20,
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 28,
+    gap: 14,
+    alignItems: 'stretch',
   },
-  playerSection: {
+  // Panel wrappers
+  panelWrapper: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexDirection: 'column',
   },
-  scoreBox: {
-    width: '90%',
-    height: '90%',
-    backgroundColor: '#f5f5f5',
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 12,
-  },
-  scoreText: {
-    fontSize: 180,
-    fontWeight: '500',
-    color: '#2a2a2a',
-    marginTop: -10,
-  },
-  centerSection: {
-    width: 140,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  matchLengthButton: {
+  centerWrapper: {
     width: 110,
-    height: 110,
-    backgroundColor: '#f5f5f5',
-    borderRadius: 12,
-    justifyContent: 'center',
+    flexDirection: 'column',
+    alignSelf: 'flex-start',
+  },
+  // Coil binding
+  coilRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
     alignItems: 'center',
+    height: 24,
+    paddingHorizontal: 8,
+    zIndex: 2,
+    marginBottom: -6,
+  },
+  coilLoop: {
+    width: 11,
+    height: 20,
+    borderRadius: 5.5,
+    borderWidth: 2.5,
+    borderColor: '#3c3c3e',
+    backgroundColor: '#e2e2e4',
+  },
+  // Score card
+  scoreCard: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+    borderRadius: 5,
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 6,
+    shadowOffset: { width: 2, height: 6 },
+    shadowOpacity: 0.18,
+    shadowRadius: 10,
     elevation: 8,
-  },
-  matchText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#666',
-    letterSpacing: 1.2,
-    marginBottom: 2,
-  },
-  matchNumber: {
-    fontSize: 56,
-    fontWeight: '300',
-    color: '#2a2a2a',
-  },
-  crawfordContainer: {
-    marginTop: 30,
-    width: 120,
-    height: 60,
     justifyContent: 'center',
     alignItems: 'center',
+    overflow: 'hidden',
   },
-  crawfordIndicator: {
-    width: 120,
-    paddingVertical: 10,
+  // Center card
+  centerCard: {
+    height: 150,
+    backgroundColor: '#ffffff',
+    borderRadius: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 2, height: 6 },
+    shadowOpacity: 0.18,
+    shadowRadius: 10,
+    elevation: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+  },
+  // Score numbers
+  scoreText: {
+    fontSize: 210,
+    fontFamily: 'HelveticaNeue-CondensedBlack',
+    color: '#111111',
+    letterSpacing: -2,
+  },
+  // Center panel text
+  matchLabel: {
+    fontSize: 26,
+    fontWeight: '800',
+    color: '#111111',
+    textAlign: 'center',
+    lineHeight: 32,
+  },
+  // Crawford strip at the bottom of the center card
+  crawfordBadge: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
     backgroundColor: '#e85d5d',
-    borderRadius: 8,
-    justifyContent: 'center',
+    paddingVertical: 8,
     alignItems: 'center',
-    shadowColor: '#e85d5d',
-    shadowOffset: {
-      width: 0,
-      height: 3,
-    },
-    shadowOpacity: 0.4,
-    shadowRadius: 6,
-    elevation: 8,
   },
   crawfordText: {
     color: '#ffffff',
-    fontSize: 11,
-    fontWeight: '600',
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1,
     textAlign: 'center',
-    letterSpacing: 0.8,
   },
 });
 
