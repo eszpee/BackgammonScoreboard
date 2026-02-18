@@ -5,22 +5,22 @@ All automated implementation tasks are complete.
 
 ---
 
-## 1. App Icon
+## [x] 1. App Icon
 
 **Task ID**: `phase-7-appstore-04`
 **Blocker**: App Store will reject without a custom icon.
 
-1. Design or source a **1024×1024px master PNG**
+1. [x] Design or source a **1024×1024px master PNG**
    - No transparency, no rounded corners (Apple applies them)
    - Suggested direction: dark background (#1a1a1a) with a clean backgammon-related mark (stylized board, pips, or score numerals in white)
-2. Generate all required sizes from the master using a tool (appicon.co, MakeAppIcon, or Xcode's asset catalog importer):
+2. [x] Generate all required sizes from the master using a tool (appicon.co, MakeAppIcon, or Xcode's asset catalog importer):
    - 40×40, 58×58, 60×60, 80×80, 87×87, 120×120, 180×180, 1024×1024
-3. Place all PNGs in: `ios/BackgammonScoreboard/Images.xcassets/AppIcon.appiconset/`
-4. Update `Contents.json` in that directory — add `"filename"` fields referencing each PNG for the matching `idiom`/`scale`/`size` entry
+3. [x] Place all PNGs in: `ios/BackgammonScoreboard/Images.xcassets/AppIcon.appiconset/`
+4. [x] Update `Contents.json` in that directory — add `"filename"` fields referencing each PNG for the matching `idiom`/`scale`/`size` entry
 
 ---
 
-## 2. App Store Connect Listing
+## [ ] 2. App Store Connect Listing
 
 **Task ID**: `phase-7-appstore-05`
 **URL**: https://appstoreconnect.apple.com
@@ -40,7 +40,7 @@ All automated implementation tasks are complete.
 
 ---
 
-## 3. Xcode Signing
+## [ ] 3. Xcode Signing
 
 **Task ID**: `phase-7-appstore-06`
 
@@ -53,7 +53,7 @@ All automated implementation tasks are complete.
 
 ---
 
-## 4. App Store Screenshots
+## [ ] 4. App Store Screenshots
 
 **Task ID**: `phase-7-appstore-07`
 
@@ -73,7 +73,7 @@ Upload in App Store Connect under the iOS app listing.
 
 ---
 
-## 5. Physical Device Testing
+## [ ] 5. Physical Device Testing
 
 **Task ID**: `phase-6-appstore-08`
 
@@ -100,4 +100,4 @@ Test on a real iPhone before submitting. Verify:
 ---
 
 *Last updated: 2026-02-18*
-*Automated tasks: complete. Manual tasks remaining: 5.*
+*Automated tasks: complete. Manual tasks remaining: 4.*
