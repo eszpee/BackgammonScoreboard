@@ -249,7 +249,7 @@ function App() {
             <Text style={styles.matchLabel}>Match</Text>
             <Text style={styles.matchLabel}>to {matchLength}</Text>
             {crawfordState !== 'none' && (
-              <View style={styles.crawfordBadge}>
+              <View style={[styles.crawfordBadge, { backgroundColor: crawfordState === 'crawford' ? '#c0392b' : '#6d7a8a' }]}>
                 <Text style={styles.crawfordText}>
                   {crawfordState === 'crawford' ? 'CRAWFORD' : 'POST CRAWFORD'}
                 </Text>
@@ -374,7 +374,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 44,
-    backgroundColor: '#e85d5d',
+    backgroundColor: '#c0392b',
     paddingHorizontal: 6,
     alignItems: 'center',
     justifyContent: 'center',
