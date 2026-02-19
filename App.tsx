@@ -73,6 +73,16 @@ function App() {
     });
   }, []);
 
+  // Clear cycling interval on unmount
+  useEffect(() => {
+    return () => {
+      if (cycleIntervalRef.current !== null) {
+        clearInterval(cycleIntervalRef.current);
+        cycleIntervalRef.current = null;
+      }
+    };
+  }, []);
+
   // Keep stateRef in sync and persist state on every change
   useEffect(() => {
     stateRef.current = { player1Score, player2Score, matchLength, crawfordState };
@@ -186,6 +196,10 @@ function App() {
   };
 
   const handleMatchLongPress = () => {
+    if (cycleIntervalRef.current !== null) {
+      clearInterval(cycleIntervalRef.current);
+      cycleIntervalRef.current = null;
+    }
     if (player1Score === 0 && player2Score === 0) {
       const step = () => setMatchLength(prev =>
         MATCH_LENGTHS[(MATCH_LENGTHS.indexOf(prev) - 1 + MATCH_LENGTHS.length) % MATCH_LENGTHS.length],
