@@ -264,7 +264,7 @@ function App() {
             <Text style={styles.matchLabel}>to {matchLength}</Text>
             {crawfordState !== 'none' && (
               <View style={[styles.crawfordBadge, { backgroundColor: crawfordState === 'crawford' ? '#c0392b' : '#6d7a8a' }]}>
-                <Text style={styles.crawfordText}>
+                <Text style={styles.crawfordText} allowFontScaling={false}>
                   {crawfordState === 'crawford' ? 'CRAWFORD' : 'POST CRAWFORD'}
                 </Text>
               </View>
