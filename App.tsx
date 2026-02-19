@@ -46,6 +46,7 @@ function App() {
   const score2Anim = useRef(new Animated.Value(1)).current;
   const isRestored = useRef(false);
   const stateRef = useRef<MatchState>({ player1Score: 0, player2Score: 0, matchLength: 5, crawfordState: 'none' });
+  const cycleIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Restore state on launch
   useEffect(() => {
@@ -186,8 +187,27 @@ function App() {
 
   const handleMatchLongPress = () => {
     if (player1Score === 0 && player2Score === 0) {
-      const currentIndex = MATCH_LENGTHS.indexOf(matchLength);
-      setMatchLength(MATCH_LENGTHS[(currentIndex - 1 + MATCH_LENGTHS.length) % MATCH_LENGTHS.length]);
+      const step = () => setMatchLength(prev =>
+        MATCH_LENGTHS[(MATCH_LENGTHS.indexOf(prev) - 1 + MATCH_LENGTHS.length) % MATCH_LENGTHS.length],
+      );
+      step();
+      cycleIntervalRef.current = setInterval(step, 250);
+    } else {
+      Alert.alert(
+        'New Match?',
+        'Start a new match and reset scores?',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'New Match', onPress: resetScores },
+        ],
+      );
+    }
+  };
+
+  const handleMatchPressOut = () => {
+    if (cycleIntervalRef.current !== null) {
+      clearInterval(cycleIntervalRef.current);
+      cycleIntervalRef.current = null;
     }
   };
 
@@ -222,6 +242,7 @@ function App() {
           style={({ pressed }) => [styles.centerWrapper, { opacity: pressed ? 0.84 : 1 }]}
           onPress={handleMatchButtonPress}
           onLongPress={handleMatchLongPress}
+          onPressOut={handleMatchPressOut}
         >
           <CoilBinding count={6} />
           <View style={styles.centerCard}>
@@ -319,7 +340,7 @@ const styles = StyleSheet.create({
   },
   // Center card
   centerCard: {
-    height: 150,
+    height: 172,
     backgroundColor: '#ffffff',
     borderRadius: 5,
     shadowColor: '#000',
@@ -352,15 +373,18 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
+    height: 44,
     backgroundColor: '#e85d5d',
-    paddingVertical: 8,
+    paddingHorizontal: 6,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   crawfordText: {
     color: '#ffffff',
     fontSize: 10,
     fontWeight: '700',
     letterSpacing: 1,
+    lineHeight: 13,
     textAlign: 'center',
   },
 });
