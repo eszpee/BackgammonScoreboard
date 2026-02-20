@@ -388,7 +388,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 44,
-    backgroundColor: '#c0392b',
     paddingHorizontal: 6,
     alignItems: 'center',
     justifyContent: 'center',
