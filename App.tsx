@@ -113,8 +113,7 @@ function App() {
 
   const addPoint = (player: number, points: number) => {
     const current = stateRef.current;
-    if (player === 1 && current.player1Score >= current.matchLength) return;
-    if (player === 2 && current.player2Score >= current.matchLength) return;
+    if (current.player1Score >= current.matchLength || current.player2Score >= current.matchLength) return;
 
     if (player === 1) {
       const newScore = player1Score + points;
