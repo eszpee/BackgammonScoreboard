@@ -58,6 +58,7 @@ function App() {
             typeof saved.player1Score === 'number' &&
             typeof saved.player2Score === 'number' &&
             typeof saved.matchLength === 'number' &&
+            MATCH_LENGTHS.includes(saved.matchLength) &&
             ['none', 'crawford', 'post-crawford'].includes(saved.crawfordState)
           ) {
             setPlayer1Score(saved.player1Score);
@@ -107,6 +108,10 @@ function App() {
   };
 
   const addPoint = (player: number, points: number) => {
+    const current = stateRef.current;
+    if (player === 1 && current.player1Score >= current.matchLength) return;
+    if (player === 2 && current.player2Score >= current.matchLength) return;
+
     if (crawfordState === 'crawford') {
       setCrawfordState('post-crawford');
     }
@@ -237,6 +242,9 @@ function App() {
           onPressIn={() => HapticFeedback.trigger('selection', HAPTIC_OPTIONS)}
           onPress={() => addPoint(1, 1)}
           onLongPress={() => decreasePoint(1)}
+          accessibilityRole="button"
+          accessibilityLabel={`Left player score: ${player1Score}`}
+          accessibilityHint="Tap to add a point, hold to decrease"
         >
           <CoilBinding />
           <View style={styles.scoreCard}>
@@ -257,11 +265,14 @@ function App() {
           onPress={handleMatchButtonPress}
           onLongPress={handleMatchLongPress}
           onPressOut={handleMatchPressOut}
+          accessibilityRole="button"
+          accessibilityLabel={`Match to ${matchLength}${crawfordState !== 'none' ? `, ${crawfordState === 'crawford' ? 'Crawford game' : 'Post Crawford'}` : ''}`}
+          accessibilityHint="Tap to change match length or start new match, hold to cycle backward"
         >
           <CoilBinding count={6} />
           <View style={styles.centerCard}>
-            <Text style={styles.matchLabel}>Match</Text>
-            <Text style={styles.matchLabel}>to {matchLength}</Text>
+            <Text style={styles.matchLabel} allowFontScaling={false}>Match</Text>
+            <Text style={styles.matchLabel} allowFontScaling={false}>to {matchLength}</Text>
             {crawfordState !== 'none' && (
               <View style={[styles.crawfordBadge, { backgroundColor: crawfordState === 'crawford' ? '#c0392b' : '#6d7a8a' }]}>
                 <Text style={styles.crawfordText} allowFontScaling={false}>
@@ -278,6 +289,9 @@ function App() {
           onPressIn={() => HapticFeedback.trigger('selection', HAPTIC_OPTIONS)}
           onPress={() => addPoint(2, 1)}
           onLongPress={() => decreasePoint(2)}
+          accessibilityRole="button"
+          accessibilityLabel={`Right player score: ${player2Score}`}
+          accessibilityHint="Tap to add a point, hold to decrease"
         >
           <CoilBinding />
           <View style={styles.scoreCard}>
