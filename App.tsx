@@ -77,6 +77,12 @@ function App() {
     });
   }, []);
 
+  // Keep screen awake for the lifetime of the app
+  useEffect(() => {
+    KeepAwake.activate();
+    return () => KeepAwake.deactivate();
+  }, []);
+
   // Clear cycling interval on unmount
   useEffect(() => {
     return () => {
@@ -242,7 +248,6 @@ function App() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <KeepAwake />
       <StatusBar barStyle="dark-content" />
 
       <View style={styles.mainContent}>
