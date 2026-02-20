@@ -243,7 +243,7 @@ function App() {
           onLongPress={() => decreasePoint(1)}
           accessibilityRole="button"
           accessibilityLabel={`Left player score: ${player1Score}`}
-          accessibilityHint="tap to increase, hold to correct"
+          accessibilityHint="Tap to add a point, hold to decrease"
         >
           <CoilBinding />
           <View style={styles.scoreCard}>
@@ -256,7 +256,7 @@ function App() {
               {player1Score}
             </Animated.Text>
             {player1Score === 0 && player2Score === 0 && (
-              <Text style={styles.hintText}>hold to correct</Text>
+              <Text style={styles.hintText}>tap to increase{'\n'}hold to correct</Text>
             )}
           </View>
         </Pressable>
@@ -293,7 +293,7 @@ function App() {
           onLongPress={() => decreasePoint(2)}
           accessibilityRole="button"
           accessibilityLabel={`Right player score: ${player2Score}`}
-          accessibilityHint="tap to increase, hold to correct"
+          accessibilityHint="Tap to add a point, hold to decrease"
         >
           <CoilBinding />
           <View style={styles.scoreCard}>
@@ -306,7 +306,7 @@ function App() {
               {player2Score}
             </Animated.Text>
             {player1Score === 0 && player2Score === 0 && (
-              <Text style={styles.hintText}>hold to correct</Text>
+              <Text style={styles.hintText}>tap to increase{'\n'}hold to correct</Text>
             )}
           </View>
         </Pressable>
@@ -409,8 +409,9 @@ const styles = StyleSheet.create({
   // Hint text inside score cards at 0–0
   hintText: {
     position: 'absolute',
-    bottom: 14,
+    bottom: 18,
     fontSize: 11,
+    lineHeight: 17,
     color: '#c8c4be',
     letterSpacing: 0.5,
     textAlign: 'center',
