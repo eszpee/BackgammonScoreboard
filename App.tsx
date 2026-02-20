@@ -112,39 +112,37 @@ function App() {
     if (player === 1 && current.player1Score >= current.matchLength) return;
     if (player === 2 && current.player2Score >= current.matchLength) return;
 
-    if (crawfordState === 'crawford') {
-      setCrawfordState('post-crawford');
-    }
-
     if (player === 1) {
       const newScore = player1Score + points;
       setPlayer1Score(newScore);
       triggerBounce(score1Anim);
 
-      if (crawfordState === 'none' && newScore === matchLength - 1 && player2Score < matchLength - 1) {
-        setCrawfordState('crawford');
-      }
-
       if (newScore >= matchLength) {
         HapticFeedback.trigger('notificationSuccess', HAPTIC_OPTIONS);
-        Alert.alert('Match Over!', `Left Player wins ${newScore} to ${player2Score}!`, [
+        Alert.alert('Match over!', `${newScore} – ${player2Score}`, [
+          { text: 'Cancel', style: 'cancel' },
           { text: 'New Match', onPress: resetScores },
         ]);
+      } else if (crawfordState === 'crawford') {
+        setCrawfordState('post-crawford');
+      } else if (crawfordState === 'none' && newScore === matchLength - 1 && player2Score < matchLength - 1) {
+        setCrawfordState('crawford');
       }
     } else {
       const newScore = player2Score + points;
       setPlayer2Score(newScore);
       triggerBounce(score2Anim);
 
-      if (crawfordState === 'none' && newScore === matchLength - 1 && player1Score < matchLength - 1) {
-        setCrawfordState('crawford');
-      }
-
       if (newScore >= matchLength) {
         HapticFeedback.trigger('notificationSuccess', HAPTIC_OPTIONS);
-        Alert.alert('Match Over!', `Right Player wins ${newScore} to ${player1Score}!`, [
+        Alert.alert('Match over!', `${player1Score} – ${newScore}`, [
+          { text: 'Cancel', style: 'cancel' },
           { text: 'New Match', onPress: resetScores },
         ]);
+      } else if (crawfordState === 'crawford') {
+        setCrawfordState('post-crawford');
+      } else if (crawfordState === 'none' && newScore === matchLength - 1 && player1Score < matchLength - 1) {
+        setCrawfordState('crawford');
       }
     }
   };
@@ -153,10 +151,11 @@ function App() {
     const currentScore = player === 1 ? player1Score : player2Score;
     if (currentScore === 0) return;
 
-    Alert.alert('Decrease point?', '', [
+    const label = player === 1 ? 'Left' : 'Right';
+    Alert.alert(`${label}: ${currentScore} → ${currentScore - 1}?`, '', [
       { text: 'Cancel', style: 'cancel' },
       {
-        text: 'Decrease',
+        text: 'OK',
         onPress: () => {
           const { player1Score: p1, player2Score: p2, matchLength: ml, crawfordState: cs } = stateRef.current;
           const latestScore = player === 1 ? p1 : p2;
@@ -233,7 +232,7 @@ function App() {
   return (
     <SafeAreaView style={styles.container}>
       <KeepAwake />
-      <StatusBar barStyle="dark-content" backgroundColor="#e2e2e4" />
+      <StatusBar barStyle="dark-content" />
 
       <View style={styles.mainContent}>
         {/* Player 1 Panel */}
@@ -256,6 +255,9 @@ function App() {
             >
               {player1Score}
             </Animated.Text>
+            {player1Score === 0 && player2Score === 0 && (
+              <Text style={styles.hintText}>tap to increase{'\n'}hold to correct</Text>
+            )}
           </View>
         </Pressable>
 
@@ -271,10 +273,10 @@ function App() {
         >
           <CoilBinding count={6} />
           <View style={styles.centerCard}>
-            <Text style={styles.matchLabel} maxFontSizeMultiplier={1.5}>Match</Text>
-            <Text style={styles.matchLabel} maxFontSizeMultiplier={1.5}>to {matchLength}</Text>
+            <Text style={styles.matchToLabel} maxFontSizeMultiplier={1.5}>MATCH TO</Text>
+            <Text style={styles.matchNumberLabel} maxFontSizeMultiplier={1.5}>{matchLength}</Text>
             {crawfordState !== 'none' && (
-              <View style={[styles.crawfordBadge, { backgroundColor: crawfordState === 'crawford' ? '#c0392b' : '#6d7a8a' }]}>
+              <View style={[styles.crawfordBadge, { backgroundColor: crawfordState === 'crawford' ? '#c0392b' : '#4a5568' }]}>
                 <Text style={styles.crawfordText} allowFontScaling={false}>
                   {crawfordState === 'crawford' ? 'CRAWFORD' : 'POST CRAWFORD'}
                 </Text>
@@ -303,6 +305,9 @@ function App() {
             >
               {player2Score}
             </Animated.Text>
+            {player1Score === 0 && player2Score === 0 && (
+              <Text style={styles.hintText}>tap to increase{'\n'}hold to correct</Text>
+            )}
           </View>
         </Pressable>
       </View>
@@ -313,7 +318,7 @@ function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#e2e2e4',
+    backgroundColor: '#f0ede8',
   },
   mainContent: {
     flex: 1,
@@ -350,7 +355,7 @@ const styles = StyleSheet.create({
     borderRadius: 5.5,
     borderWidth: 2.5,
     borderColor: '#3c3c3e',
-    backgroundColor: '#e2e2e4',
+    backgroundColor: '#f0ede8',
   },
   // Score card
   scoreCard: {
@@ -364,7 +369,6 @@ const styles = StyleSheet.create({
     elevation: 8,
     justifyContent: 'center',
     alignItems: 'center',
-    overflow: 'hidden',
   },
   // Center card
   centerCard: {
@@ -388,12 +392,29 @@ const styles = StyleSheet.create({
     letterSpacing: -2,
   },
   // Center panel text
-  matchLabel: {
-    fontSize: 26,
+  matchToLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#888888',
+    letterSpacing: 1.5,
+    textAlign: 'center',
+  },
+  matchNumberLabel: {
+    fontSize: 44,
     fontWeight: '800',
     color: '#111111',
     textAlign: 'center',
-    lineHeight: 32,
+    lineHeight: 50,
+  },
+  // Hint text inside score cards at 0–0
+  hintText: {
+    position: 'absolute',
+    bottom: 18,
+    fontSize: 11,
+    lineHeight: 17,
+    color: '#c8c4be',
+    letterSpacing: 0.5,
+    textAlign: 'center',
   },
   // Crawford strip at the bottom of the center card
   crawfordBadge: {
@@ -408,10 +429,10 @@ const styles = StyleSheet.create({
   },
   crawfordText: {
     color: '#ffffff',
-    fontSize: 10,
+    fontSize: 13,
     fontWeight: '700',
     letterSpacing: 1,
-    lineHeight: 13,
+    lineHeight: 17,
     textAlign: 'center',
   },
 });
