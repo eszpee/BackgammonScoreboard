@@ -24,6 +24,7 @@ interface MatchState {
   player2Score: number;
   matchLength: number;
   crawfordState: CrawfordState;
+  crawfordBaseScore: number;
 }
 
 function CoilBinding({ count = 14 }: { count?: number }) {
@@ -41,11 +42,12 @@ function App() {
   const [player2Score, setPlayer2Score] = useState(0);
   const [matchLength, setMatchLength] = useState(5);
   const [crawfordState, setCrawfordState] = useState<CrawfordState>('none');
+  const [crawfordBaseScore, setCrawfordBaseScore] = useState(0);
 
   const score1Anim = useRef(new Animated.Value(1)).current;
   const score2Anim = useRef(new Animated.Value(1)).current;
   const isRestored = useRef(false);
-  const stateRef = useRef<MatchState>({ player1Score: 0, player2Score: 0, matchLength: 5, crawfordState: 'none' });
+  const stateRef = useRef<MatchState>({ player1Score: 0, player2Score: 0, matchLength: 5, crawfordState: 'none', crawfordBaseScore: 0 });
   const cycleIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Restore state on launch
@@ -65,6 +67,7 @@ function App() {
             setPlayer2Score(saved.player2Score);
             setMatchLength(saved.matchLength);
             setCrawfordState(saved.crawfordState as CrawfordState);
+            setCrawfordBaseScore(typeof saved.crawfordBaseScore === 'number' ? saved.crawfordBaseScore : 0);
           }
         } catch {
           console.warn('[BackgammonScoreboard] Failed to parse saved match state');
@@ -86,13 +89,13 @@ function App() {
 
   // Keep stateRef in sync and persist state on every change
   useEffect(() => {
-    stateRef.current = { player1Score, player2Score, matchLength, crawfordState };
+    stateRef.current = { player1Score, player2Score, matchLength, crawfordState, crawfordBaseScore };
     if (!isRestored.current) return;
     AsyncStorage.setItem(
       STORAGE_KEY,
-      JSON.stringify({ player1Score, player2Score, matchLength, crawfordState }),
+      JSON.stringify({ player1Score, player2Score, matchLength, crawfordState, crawfordBaseScore }),
     );
-  }, [player1Score, player2Score, matchLength, crawfordState]);
+  }, [player1Score, player2Score, matchLength, crawfordState, crawfordBaseScore]);
 
   const triggerBounce = (anim: Animated.Value) => {
     Animated.sequence([
@@ -105,6 +108,7 @@ function App() {
     setPlayer1Score(0);
     setPlayer2Score(0);
     setCrawfordState('none');
+    setCrawfordBaseScore(0);
   };
 
   const addPoint = (player: number, points: number) => {
@@ -127,6 +131,7 @@ function App() {
         setCrawfordState('post-crawford');
       } else if (crawfordState === 'none' && newScore === matchLength - 1 && player2Score < matchLength - 1) {
         setCrawfordState('crawford');
+        setCrawfordBaseScore(player2Score);
       }
     } else {
       const newScore = player2Score + points;
@@ -143,6 +148,7 @@ function App() {
         setCrawfordState('post-crawford');
       } else if (crawfordState === 'none' && newScore === matchLength - 1 && player1Score < matchLength - 1) {
         setCrawfordState('crawford');
+        setCrawfordBaseScore(player1Score);
       }
     }
   };
@@ -170,12 +176,18 @@ function App() {
             setPlayer2Score(newScore);
           }
 
+          const { crawfordBaseScore: base } = stateRef.current;
           if (p1New < ml - 1 && p2New < ml - 1) {
             // Neither player at match-1: Crawford never happened at these scores
             setCrawfordState('none');
           } else if (cs === 'post-crawford') {
-            // One player still at match-1, going backward: revert to Crawford game
-            setCrawfordState('crawford');
+            // One player still at match-1; only revert to Crawford if we're undoing
+            // exactly the first post-Crawford game (non-triggering player back to their
+            // score at the moment Crawford was triggered).
+            if ((p1New === ml - 1 && p2New === base) || (p2New === ml - 1 && p1New === base)) {
+              setCrawfordState('crawford');
+            }
+            // else: still in post-Crawford territory, leave state unchanged
           }
           // else: already 'crawford' with one player still at match-1, keep it
         },
