@@ -46,6 +46,7 @@ function App() {
   const score2Anim = useRef(new Animated.Value(1)).current;
   const isRestored = useRef(false);
   const stateRef = useRef<MatchState>({ player1Score: 0, player2Score: 0, matchLength: 5, crawfordState: 'none' });
+  const cycleIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Restore state on launch
   useEffect(() => {
@@ -70,6 +71,16 @@ function App() {
       }
       isRestored.current = true;
     });
+  }, []);
+
+  // Clear cycling interval on unmount
+  useEffect(() => {
+    return () => {
+      if (cycleIntervalRef.current !== null) {
+        clearInterval(cycleIntervalRef.current);
+        cycleIntervalRef.current = null;
+      }
+    };
   }, []);
 
   // Keep stateRef in sync and persist state on every change
@@ -185,9 +196,32 @@ function App() {
   };
 
   const handleMatchLongPress = () => {
+    if (cycleIntervalRef.current !== null) {
+      clearInterval(cycleIntervalRef.current);
+      cycleIntervalRef.current = null;
+    }
     if (player1Score === 0 && player2Score === 0) {
-      const currentIndex = MATCH_LENGTHS.indexOf(matchLength);
-      setMatchLength(MATCH_LENGTHS[(currentIndex - 1 + MATCH_LENGTHS.length) % MATCH_LENGTHS.length]);
+      const step = () => setMatchLength(prev =>
+        MATCH_LENGTHS[(MATCH_LENGTHS.indexOf(prev) - 1 + MATCH_LENGTHS.length) % MATCH_LENGTHS.length],
+      );
+      step();
+      cycleIntervalRef.current = setInterval(step, 250);
+    } else {
+      Alert.alert(
+        'New Match?',
+        'Start a new match and reset scores?',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'New Match', onPress: resetScores },
+        ],
+      );
+    }
+  };
+
+  const handleMatchPressOut = () => {
+    if (cycleIntervalRef.current !== null) {
+      clearInterval(cycleIntervalRef.current);
+      cycleIntervalRef.current = null;
     }
   };
 
@@ -222,14 +256,15 @@ function App() {
           style={({ pressed }) => [styles.centerWrapper, { opacity: pressed ? 0.84 : 1 }]}
           onPress={handleMatchButtonPress}
           onLongPress={handleMatchLongPress}
+          onPressOut={handleMatchPressOut}
         >
           <CoilBinding count={6} />
           <View style={styles.centerCard}>
             <Text style={styles.matchLabel}>Match</Text>
             <Text style={styles.matchLabel}>to {matchLength}</Text>
             {crawfordState !== 'none' && (
-              <View style={styles.crawfordBadge}>
-                <Text style={styles.crawfordText}>
+              <View style={[styles.crawfordBadge, { backgroundColor: crawfordState === 'crawford' ? '#c0392b' : '#6d7a8a' }]}>
+                <Text style={styles.crawfordText} allowFontScaling={false}>
                   {crawfordState === 'crawford' ? 'CRAWFORD' : 'POST CRAWFORD'}
                 </Text>
               </View>
@@ -319,7 +354,7 @@ const styles = StyleSheet.create({
   },
   // Center card
   centerCard: {
-    height: 150,
+    height: 172,
     backgroundColor: '#ffffff',
     borderRadius: 5,
     shadowColor: '#000',
@@ -352,15 +387,17 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: '#e85d5d',
-    paddingVertical: 8,
+    height: 44,
+    paddingHorizontal: 6,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   crawfordText: {
     color: '#ffffff',
     fontSize: 10,
     fontWeight: '700',
     letterSpacing: 1,
+    lineHeight: 13,
     textAlign: 'center',
   },
 });

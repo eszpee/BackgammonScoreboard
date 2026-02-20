@@ -31,7 +31,7 @@
 - [x] **Add long press to cycle match length backward** (ref: PRD Feature 2)
   Task ID: `phase-1-cleanup-05`
   > **Implementation**: Edit `App.tsx`.
-  > **Details**: Add `handleMatchLongPress` function: if scores are both 0, find the current index in `lengths`, set matchLength to `lengths[(currentIndex - 1 + lengths.length) % lengths.length]`. Wire `onLongPress={handleMatchLongPress}` on the center `matchLengthButton` Pressable. Long press mid-match does nothing (only forward cycle and New Match prompt are available then).
+  > **Details**: `handleMatchLongPress` with two branches: (1) if scores are both 0, continuously cycle matchLength down through `MATCH_LENGTHS` at 250ms intervals using `setInterval` while held (cleared on `onPressOut`); (2) if a match is in progress, show the same "New Match?" confirmation dialog as a short press.
 
 - [x] **Replace TouchableOpacity with Pressable** (ref: PRD polish)
   Task ID: `phase-1-cleanup-03`
@@ -134,7 +134,7 @@
   > 2. Change the view background color from `systemBackgroundColor` to a custom color matching `#1a1a1a`: replace `<color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>` with `<color key="backgroundColor" red="0.10196" green="0.10196" blue="0.10196" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>`.
   > 3. Update the remaining app name label (id `GJd-Yh-RWb`) text color to white: add `<color key="textColor" white="1" alpha="1" colorSpace="calibratedWhite"/>` inside it.
 
-- [ ] **Create app icon** (ref: PRD App Store Blocker #12)
+- [x] **Create app icon** (ref: PRD App Store Blocker #12)
   Task ID: `phase-7-appstore-04`
   > **Implementation**: Manual design + file placement task.
   > **Details**:
