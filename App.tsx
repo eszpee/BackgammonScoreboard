@@ -243,7 +243,7 @@ function App() {
           onLongPress={() => decreasePoint(1)}
           accessibilityRole="button"
           accessibilityLabel={`Left player score: ${player1Score}`}
-          accessibilityHint="Tap to add a point, hold to decrease"
+          accessibilityHint="tap to increase, hold to correct"
         >
           <CoilBinding />
           <View style={styles.scoreCard}>
@@ -293,7 +293,7 @@ function App() {
           onLongPress={() => decreasePoint(2)}
           accessibilityRole="button"
           accessibilityLabel={`Right player score: ${player2Score}`}
-          accessibilityHint="Tap to add a point, hold to decrease"
+          accessibilityHint="tap to increase, hold to correct"
         >
           <CoilBinding />
           <View style={styles.scoreCard}>
