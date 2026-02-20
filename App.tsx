@@ -271,8 +271,8 @@ function App() {
         >
           <CoilBinding count={6} />
           <View style={styles.centerCard}>
-            <Text style={styles.matchLabel} allowFontScaling={false}>Match</Text>
-            <Text style={styles.matchLabel} allowFontScaling={false}>to {matchLength}</Text>
+            <Text style={styles.matchLabel} maxFontSizeMultiplier={1.5}>Match</Text>
+            <Text style={styles.matchLabel} maxFontSizeMultiplier={1.5}>to {matchLength}</Text>
             {crawfordState !== 'none' && (
               <View style={[styles.crawfordBadge, { backgroundColor: crawfordState === 'crawford' ? '#c0392b' : '#6d7a8a' }]}>
                 <Text style={styles.crawfordText} allowFontScaling={false}>
