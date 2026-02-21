@@ -9,6 +9,8 @@ import {
   Alert,
   Animated,
   useColorScheme,
+  Settings,
+  AppState,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import HapticFeedback from 'react-native-haptic-feedback';
@@ -71,8 +73,16 @@ function App() {
   const [crawfordState, setCrawfordState] = useState<CrawfordState>('none');
   const [crawfordBaseScore, setCrawfordBaseScore] = useState(0);
 
-  const colorScheme = useColorScheme();
-  const t = colorScheme === 'dark' ? DARK : LIGHT;
+  const systemColorScheme = useColorScheme();
+  const [storedMode, setStoredMode] = useState<string>(
+    () => (Settings.get('appearance_mode') as string | null) ?? 'system',
+  );
+
+  const effectiveScheme =
+    storedMode === 'dark' ? 'dark'
+    : storedMode === 'light' ? 'light'
+    : systemColorScheme;
+  const t = effectiveScheme === 'dark' ? DARK : LIGHT;
 
   const score1Anim = useRef(new Animated.Value(1)).current;
   const score2Anim = useRef(new Animated.Value(1)).current;
@@ -132,6 +142,16 @@ function App() {
       JSON.stringify({ player1Score, player2Score, matchLength, crawfordState, crawfordBaseScore }),
     );
   }, [player1Score, player2Score, matchLength, crawfordState, crawfordBaseScore]);
+
+  // Refresh appearance preference when returning from iOS Settings
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', nextState => {
+      if (nextState === 'active') {
+        setStoredMode((Settings.get('appearance_mode') as string | null) ?? 'system');
+      }
+    });
+    return () => sub.remove();
+  }, []);
 
   const triggerBounce = (anim: Animated.Value) => {
     Animated.sequence([
