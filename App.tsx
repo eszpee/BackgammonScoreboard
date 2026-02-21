@@ -21,6 +21,7 @@ const HAPTIC_OPTIONS = { enableVibrateFallback: true, ignoreAndroidSystemSetting
 const MATCH_LENGTHS = [3, 5, 7, 9, 11, 13, 15, 17, 21];
 
 type CrawfordState = 'none' | 'crawford' | 'post-crawford';
+type AppearanceMode = 'system' | 'light' | 'dark';
 
 interface MatchState {
   player1Score: number;
@@ -74,14 +75,14 @@ function App() {
   const [crawfordBaseScore, setCrawfordBaseScore] = useState(0);
 
   const systemColorScheme = useColorScheme();
-  const [storedMode, setStoredMode] = useState<string>(
-    () => (Settings.get('appearance_mode') as string | null) ?? 'system',
+  const [storedMode, setStoredMode] = useState<AppearanceMode>(
+    () => (Settings.get('appearance_mode') as AppearanceMode | null) ?? 'system',
   );
 
-  const effectiveScheme =
+  const effectiveScheme: 'light' | 'dark' =
     storedMode === 'dark' ? 'dark'
     : storedMode === 'light' ? 'light'
-    : systemColorScheme;
+    : (systemColorScheme ?? 'light');
   const t = effectiveScheme === 'dark' ? DARK : LIGHT;
 
   const score1Anim = useRef(new Animated.Value(1)).current;
@@ -147,7 +148,7 @@ function App() {
   useEffect(() => {
     const sub = AppState.addEventListener('change', nextState => {
       if (nextState === 'active') {
-        setStoredMode((Settings.get('appearance_mode') as string | null) ?? 'system');
+        setStoredMode((Settings.get('appearance_mode') as AppearanceMode | null) ?? 'system');
       }
     });
     return () => sub.remove();
