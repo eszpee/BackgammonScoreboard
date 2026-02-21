@@ -17,6 +17,7 @@ import KeepAwake from 'react-native-keep-awake';
 const STORAGE_KEY = 'matchState';
 const HAPTIC_OPTIONS = { enableVibrateFallback: true, ignoreAndroidSystemSettings: false };
 const MATCH_LENGTHS = [3, 5, 7, 9, 11, 13, 15, 17, 21];
+const SCORE_FONT_SIZE = 210;
 
 type CrawfordState = 'none' | 'crawford' | 'post-crawford';
 
@@ -419,9 +420,15 @@ const styles = StyleSheet.create({
   },
   // Score numbers
   scoreText: {
-    fontSize: 210,
+    fontSize: SCORE_FONT_SIZE,
     fontFamily: 'HelveticaNeue-CondensedBlack',
     letterSpacing: -2,
+    // Collapse the large internal leading from HelveticaNeue-CondensedBlack's
+    // ascender metrics so the layout box matches the visible cap height.
+    lineHeight: SCORE_FONT_SIZE,
+    // Empirical offset to optically center glyphs: the font's ascender space
+    // above the cap height is larger than the descender space below the baseline.
+    marginTop: -12,
   },
   // Center panel text
   matchToLabel: {
