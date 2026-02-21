@@ -9,6 +9,8 @@ import {
   Alert,
   Animated,
   useColorScheme,
+  Settings,
+  AppState,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import HapticFeedback from 'react-native-haptic-feedback';
@@ -20,6 +22,7 @@ const MATCH_LENGTHS = [3, 5, 7, 9, 11, 13, 15, 17, 21];
 const SCORE_FONT_SIZE = 210;
 
 type CrawfordState = 'none' | 'crawford' | 'post-crawford';
+type AppearanceMode = 'system' | 'light' | 'dark';
 
 interface MatchState {
   player1Score: number;
@@ -72,8 +75,16 @@ function App() {
   const [crawfordState, setCrawfordState] = useState<CrawfordState>('none');
   const [crawfordBaseScore, setCrawfordBaseScore] = useState(0);
 
-  const colorScheme = useColorScheme();
-  const t = colorScheme === 'dark' ? DARK : LIGHT;
+  const systemColorScheme = useColorScheme();
+  const [storedMode, setStoredMode] = useState<AppearanceMode>(
+    () => (Settings.get('appearance_mode') as AppearanceMode | null) ?? 'system',
+  );
+
+  const effectiveScheme: 'light' | 'dark' =
+    storedMode === 'dark' ? 'dark'
+    : storedMode === 'light' ? 'light'
+    : (systemColorScheme ?? 'light');
+  const t = effectiveScheme === 'dark' ? DARK : LIGHT;
 
   const score1Anim = useRef(new Animated.Value(1)).current;
   const score2Anim = useRef(new Animated.Value(1)).current;
@@ -133,6 +144,16 @@ function App() {
       JSON.stringify({ player1Score, player2Score, matchLength, crawfordState, crawfordBaseScore }),
     );
   }, [player1Score, player2Score, matchLength, crawfordState, crawfordBaseScore]);
+
+  // Refresh appearance preference when returning from iOS Settings
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', nextState => {
+      if (nextState === 'active') {
+        setStoredMode((Settings.get('appearance_mode') as AppearanceMode | null) ?? 'system');
+      }
+    });
+    return () => sub.remove();
+  }, []);
 
   const triggerBounce = (anim: Animated.Value) => {
     Animated.sequence([
