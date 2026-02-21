@@ -406,6 +406,8 @@ const styles = StyleSheet.create({
     fontFamily: 'HelveticaNeue-CondensedBlack',
     color: '#111111',
     letterSpacing: -2,
+    lineHeight: 210,
+    marginTop: -12,
   },
   // Center panel text
   matchToLabel: {
