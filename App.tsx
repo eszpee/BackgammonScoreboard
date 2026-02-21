@@ -36,7 +36,7 @@ const LIGHT = {
   matchNumber:  '#111111',
   coilBg:       '#f0ede8',
   coilBorder:   '#3c3c3e',
-  hintText:     '#c8c4be',
+  hintText:     '#888882',
   statusBar:    'dark-content' as const,
   shadowOpacity: 0.18,
 };
@@ -49,7 +49,7 @@ const DARK = {
   matchNumber:  '#f0ede8',
   coilBg:       '#1c1a17',
   coilBorder:   '#5a5855',
-  hintText:     '#4a4845',
+  hintText:     '#7a7774',
   statusBar:    'light-content' as const,
   shadowOpacity: 0.40,
 };
