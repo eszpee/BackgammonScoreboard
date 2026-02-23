@@ -8,6 +8,9 @@ import {
   StatusBar,
   Alert,
   Animated,
+  useColorScheme,
+  Settings,
+  AppState,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import HapticFeedback from 'react-native-haptic-feedback';
@@ -16,8 +19,10 @@ import KeepAwake from 'react-native-keep-awake';
 const STORAGE_KEY = 'matchState';
 const HAPTIC_OPTIONS = { enableVibrateFallback: true, ignoreAndroidSystemSettings: false };
 const MATCH_LENGTHS = [3, 5, 7, 9, 11, 13, 15, 17, 21];
+const SCORE_FONT_SIZE = 210;
 
 type CrawfordState = 'none' | 'crawford' | 'post-crawford';
+type AppearanceMode = 'system' | 'light' | 'dark';
 
 interface MatchState {
   player1Score: number;
@@ -27,11 +32,41 @@ interface MatchState {
   crawfordBaseScore: number;
 }
 
-function CoilBinding({ count = 14 }: { count?: number }) {
+const LIGHT = {
+  background:       '#f0ede8',
+  card:             '#ffffff',
+  scoreText:        '#111111',
+  matchLabel:       '#888888',
+  matchNumber:      '#111111',
+  coilBg:           '#f0ede8',
+  coilBorder:       '#3c3c3e',
+  hintText:         '#6e6b68',
+  statusBar:        'dark-content' as const,
+  shadowOpacity:    0.18,
+  crawfordBg:       '#c0392b',
+  postCrawfordBg:   '#4a5568',
+};
+
+const DARK = {
+  background:       '#1c1a17',
+  card:             '#2c2926',
+  scoreText:        '#f0ede8',
+  matchLabel:       '#8a8480',
+  matchNumber:      '#f0ede8',
+  coilBg:           '#1c1a17',
+  coilBorder:       '#5a5855',
+  hintText:         '#9a9794',
+  statusBar:        'light-content' as const,
+  shadowOpacity:    0.40,
+  crawfordBg:       '#e74c3c',
+  postCrawfordBg:   '#64748b',
+};
+
+function CoilBinding({ count = 14, bgColor, borderColor }: { count?: number; bgColor: string; borderColor: string }) {
   return (
     <View style={styles.coilRow}>
       {Array.from({ length: count }).map((_, i) => (
-        <View key={i} style={styles.coilLoop} />
+        <View key={i} style={[styles.coilLoop, { backgroundColor: bgColor, borderColor }]} />
       ))}
     </View>
   );
@@ -43,6 +78,17 @@ function App() {
   const [matchLength, setMatchLength] = useState(5);
   const [crawfordState, setCrawfordState] = useState<CrawfordState>('none');
   const [crawfordBaseScore, setCrawfordBaseScore] = useState(0);
+
+  const systemColorScheme = useColorScheme();
+  const [storedMode, setStoredMode] = useState<AppearanceMode>(
+    () => (Settings.get('appearance_mode') as AppearanceMode | null) ?? 'system',
+  );
+
+  const effectiveScheme: 'light' | 'dark' =
+    storedMode === 'dark' ? 'dark'
+    : storedMode === 'light' ? 'light'
+    : (systemColorScheme ?? 'light');
+  const t = effectiveScheme === 'dark' ? DARK : LIGHT;
 
   const score1Anim = useRef(new Animated.Value(1)).current;
   const score2Anim = useRef(new Animated.Value(1)).current;
@@ -102,6 +148,16 @@ function App() {
       JSON.stringify({ player1Score, player2Score, matchLength, crawfordState, crawfordBaseScore }),
     );
   }, [player1Score, player2Score, matchLength, crawfordState, crawfordBaseScore]);
+
+  // Refresh appearance preference when returning from iOS Settings
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', nextState => {
+      if (nextState === 'active') {
+        setStoredMode((Settings.get('appearance_mode') as AppearanceMode | null) ?? 'system');
+      }
+    });
+    return () => sub.remove();
+  }, []);
 
   const triggerBounce = (anim: Animated.Value) => {
     Animated.sequence([
@@ -183,18 +239,12 @@ function App() {
 
           const { crawfordBaseScore: base } = stateRef.current;
           if (p1New < ml - 1 && p2New < ml - 1) {
-            // Neither player at match-1: Crawford never happened at these scores
             setCrawfordState('none');
           } else if (cs === 'post-crawford') {
-            // One player still at match-1; only revert to Crawford if we're undoing
-            // exactly the first post-Crawford game (non-triggering player back to their
-            // score at the moment Crawford was triggered).
             if ((p1New === ml - 1 && p2New === base) || (p2New === ml - 1 && p1New === base)) {
               setCrawfordState('crawford');
             }
-            // else: still in post-Crawford territory, leave state unchanged
           }
-          // else: already 'crawford' with one player still at match-1, keep it
         },
       },
     ]);
@@ -246,9 +296,17 @@ function App() {
     }
   };
 
+  const cardShadow = {
+    shadowColor: '#000',
+    shadowOffset: { width: 2, height: 6 },
+    shadowOpacity: t.shadowOpacity,
+    shadowRadius: 10,
+    elevation: 8,
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
+    <SafeAreaView style={[styles.container, { backgroundColor: t.background }]}>
+      <StatusBar barStyle={t.statusBar} />
 
       <View style={styles.mainContent}>
         {/* Player 1 Panel */}
@@ -261,10 +319,10 @@ function App() {
           accessibilityLabel={`Left player score: ${player1Score}`}
           accessibilityHint="Tap to add a point, hold to decrease"
         >
-          <CoilBinding />
-          <View style={styles.scoreCard}>
+          <CoilBinding bgColor={t.coilBg} borderColor={t.coilBorder} />
+          <View style={[styles.scoreCard, { backgroundColor: t.card }, cardShadow]}>
             <Animated.Text
-              style={[styles.scoreText, { transform: [{ scale: score1Anim }] }]}
+              style={[styles.scoreText, { color: t.scoreText, transform: [{ scale: score1Anim }] }]}
               adjustsFontSizeToFit
               numberOfLines={1}
               minimumFontScale={0.4}
@@ -272,7 +330,7 @@ function App() {
               {player1Score}
             </Animated.Text>
             {player1Score === 0 && player2Score === 0 && (
-              <Text style={styles.hintText}>tap to increase{'\n'}hold to correct</Text>
+              <Text style={[styles.hintText, { color: t.hintText }]}>tap to increase{'\n'}hold to correct</Text>
             )}
           </View>
         </Pressable>
@@ -287,12 +345,12 @@ function App() {
           accessibilityLabel={`Match to ${matchLength}${crawfordState !== 'none' ? `, ${crawfordState === 'crawford' ? 'Crawford game' : 'Post Crawford'}` : ''}`}
           accessibilityHint="Tap to change match length or start new match, hold to cycle backward"
         >
-          <CoilBinding count={6} />
-          <View style={styles.centerCard}>
-            <Text style={styles.matchToLabel} maxFontSizeMultiplier={1.5}>MATCH TO</Text>
-            <Text style={styles.matchNumberLabel} maxFontSizeMultiplier={1.5}>{matchLength}</Text>
+          <CoilBinding count={6} bgColor={t.coilBg} borderColor={t.coilBorder} />
+          <View style={[styles.centerCard, { backgroundColor: t.card }, cardShadow]}>
+            <Text style={[styles.matchToLabel, { color: t.matchLabel }]} maxFontSizeMultiplier={1.5}>MATCH TO</Text>
+            <Text style={[styles.matchNumberLabel, { color: t.matchNumber }]} maxFontSizeMultiplier={1.5}>{matchLength}</Text>
             {crawfordState !== 'none' && (
-              <View style={[styles.crawfordBadge, { backgroundColor: crawfordState === 'crawford' ? '#c0392b' : '#4a5568' }]}>
+              <View style={[styles.crawfordBadge, { backgroundColor: crawfordState === 'crawford' ? t.crawfordBg : t.postCrawfordBg }]}>
                 <Text style={styles.crawfordText} allowFontScaling={false}>
                   {crawfordState === 'crawford' ? 'CRAWFORD' : 'POST CRAWFORD'}
                 </Text>
@@ -311,10 +369,10 @@ function App() {
           accessibilityLabel={`Right player score: ${player2Score}`}
           accessibilityHint="Tap to add a point, hold to decrease"
         >
-          <CoilBinding />
-          <View style={styles.scoreCard}>
+          <CoilBinding bgColor={t.coilBg} borderColor={t.coilBorder} />
+          <View style={[styles.scoreCard, { backgroundColor: t.card }, cardShadow]}>
             <Animated.Text
-              style={[styles.scoreText, { transform: [{ scale: score2Anim }] }]}
+              style={[styles.scoreText, { color: t.scoreText, transform: [{ scale: score2Anim }] }]}
               adjustsFontSizeToFit
               numberOfLines={1}
               minimumFontScale={0.4}
@@ -322,7 +380,7 @@ function App() {
               {player2Score}
             </Animated.Text>
             {player1Score === 0 && player2Score === 0 && (
-              <Text style={styles.hintText}>tap to increase{'\n'}hold to correct</Text>
+              <Text style={[styles.hintText, { color: t.hintText }]}>tap to increase{'\n'}hold to correct</Text>
             )}
           </View>
         </Pressable>
@@ -334,7 +392,6 @@ function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f0ede8',
   },
   mainContent: {
     flex: 1,
@@ -370,55 +427,44 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 5.5,
     borderWidth: 2.5,
-    borderColor: '#3c3c3e',
-    backgroundColor: '#f0ede8',
   },
   // Score card
   scoreCard: {
     flex: 1,
-    backgroundColor: '#ffffff',
     borderRadius: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 2, height: 6 },
-    shadowOpacity: 0.18,
-    shadowRadius: 10,
-    elevation: 8,
     justifyContent: 'center',
     alignItems: 'center',
   },
   // Center card
   centerCard: {
     height: 172,
-    backgroundColor: '#ffffff',
     borderRadius: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 2, height: 6 },
-    shadowOpacity: 0.18,
-    shadowRadius: 10,
-    elevation: 8,
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden',
   },
   // Score numbers
   scoreText: {
-    fontSize: 210,
+    fontSize: SCORE_FONT_SIZE,
     fontFamily: 'HelveticaNeue-CondensedBlack',
-    color: '#111111',
     letterSpacing: -2,
+    // Collapse the large internal leading from HelveticaNeue-CondensedBlack's
+    // ascender metrics so the layout box matches the visible cap height.
+    lineHeight: SCORE_FONT_SIZE,
+    // Empirical offset to optically center glyphs: the font's ascender space
+    // above the cap height is larger than the descender space below the baseline.
+    marginTop: -12,
   },
   // Center panel text
   matchToLabel: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#888888',
     letterSpacing: 1.5,
     textAlign: 'center',
   },
   matchNumberLabel: {
     fontSize: 44,
     fontWeight: '800',
-    color: '#111111',
     textAlign: 'center',
     lineHeight: 50,
   },
@@ -428,7 +474,6 @@ const styles = StyleSheet.create({
     bottom: 18,
     fontSize: 11,
     lineHeight: 17,
-    color: '#c8c4be',
     letterSpacing: 0.5,
     textAlign: 'center',
   },
