@@ -33,29 +33,33 @@ interface MatchState {
 }
 
 const LIGHT = {
-  background:   '#f0ede8',
-  card:         '#ffffff',
-  scoreText:    '#111111',
-  matchLabel:   '#888888',
-  matchNumber:  '#111111',
-  coilBg:       '#f0ede8',
-  coilBorder:   '#3c3c3e',
-  hintText:     '#6e6b68',
-  statusBar:    'dark-content' as const,
-  shadowOpacity: 0.18,
+  background:       '#f0ede8',
+  card:             '#ffffff',
+  scoreText:        '#111111',
+  matchLabel:       '#888888',
+  matchNumber:      '#111111',
+  coilBg:           '#f0ede8',
+  coilBorder:       '#3c3c3e',
+  hintText:         '#6e6b68',
+  statusBar:        'dark-content' as const,
+  shadowOpacity:    0.18,
+  crawfordBg:       '#c0392b',
+  postCrawfordBg:   '#4a5568',
 };
 
 const DARK = {
-  background:   '#1c1a17',
-  card:         '#2c2926',
-  scoreText:    '#f0ede8',
-  matchLabel:   '#8a8480',
-  matchNumber:  '#f0ede8',
-  coilBg:       '#1c1a17',
-  coilBorder:   '#5a5855',
-  hintText:     '#9a9794',
-  statusBar:    'light-content' as const,
-  shadowOpacity: 0.40,
+  background:       '#1c1a17',
+  card:             '#2c2926',
+  scoreText:        '#f0ede8',
+  matchLabel:       '#8a8480',
+  matchNumber:      '#f0ede8',
+  coilBg:           '#1c1a17',
+  coilBorder:       '#5a5855',
+  hintText:         '#9a9794',
+  statusBar:        'light-content' as const,
+  shadowOpacity:    0.40,
+  crawfordBg:       '#e74c3c',
+  postCrawfordBg:   '#64748b',
 };
 
 function CoilBinding({ count = 14, bgColor, borderColor }: { count?: number; bgColor: string; borderColor: string }) {
@@ -346,7 +350,7 @@ function App() {
             <Text style={[styles.matchToLabel, { color: t.matchLabel }]} maxFontSizeMultiplier={1.5}>MATCH TO</Text>
             <Text style={[styles.matchNumberLabel, { color: t.matchNumber }]} maxFontSizeMultiplier={1.5}>{matchLength}</Text>
             {crawfordState !== 'none' && (
-              <View style={[styles.crawfordBadge, { backgroundColor: crawfordState === 'crawford' ? '#c0392b' : '#4a5568' }]}>
+              <View style={[styles.crawfordBadge, { backgroundColor: crawfordState === 'crawford' ? t.crawfordBg : t.postCrawfordBg }]}>
                 <Text style={styles.crawfordText} allowFontScaling={false}>
                   {crawfordState === 'crawford' ? 'CRAWFORD' : 'POST CRAWFORD'}
                 </Text>
