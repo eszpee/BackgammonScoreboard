@@ -8,7 +8,7 @@ import {
   StatusBar,
   Alert,
   Animated,
-  Appearance,
+  useColorScheme,
   Settings,
   AppState,
 } from 'react-native';
@@ -79,9 +79,7 @@ function App() {
   const [crawfordState, setCrawfordState] = useState<CrawfordState>('none');
   const [crawfordBaseScore, setCrawfordBaseScore] = useState(0);
 
-  const [systemScheme, setSystemScheme] = useState<'light' | 'dark'>(
-    () => Appearance.getColorScheme() ?? 'light',
-  );
+  const systemScheme = useColorScheme() ?? 'light';
   const [storedMode, setStoredMode] = useState<AppearanceMode>(
     () => (Settings.get('appearance_mode') as AppearanceMode | null) ?? 'system',
   );
@@ -151,24 +149,18 @@ function App() {
     );
   }, [player1Score, player2Score, matchLength, crawfordState, crawfordBaseScore]);
 
-  // Keep system color scheme in sync:
-  // - Appearance.addChangeListener handles changes while the app is in the foreground
-  // - AppState 'active' forces a fresh read of both the system scheme and the
-  //   Settings.bundle preference after returning from background
+  // Re-read the Settings.bundle appearance preference when the app becomes active.
+  // useColorScheme() (backed by useSyncExternalStore since RN 0.72) handles the
+  // system color scheme reactively; no manual Appearance polling is needed for that.
+  // Settings.bundle has no change notifications, so AppState is the only way to
+  // pick up edits the user made in the iOS Settings app while the app was backgrounded.
   useEffect(() => {
-    const appearanceSub = Appearance.addChangeListener(({ colorScheme }) => {
-      setSystemScheme(colorScheme ?? 'light');
-    });
-    const appStateSub = AppState.addEventListener('change', nextState => {
+    const sub = AppState.addEventListener('change', nextState => {
       if (nextState === 'active') {
         setStoredMode((Settings.get('appearance_mode') as AppearanceMode | null) ?? 'system');
-        setSystemScheme(Appearance.getColorScheme() ?? 'light');
       }
     });
-    return () => {
-      appearanceSub.remove();
-      appStateSub.remove();
-    };
+    return () => sub.remove();
   }, []);
 
   const triggerBounce = (anim: Animated.Value) => {
