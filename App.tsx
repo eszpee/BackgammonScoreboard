@@ -79,7 +79,7 @@ function App() {
   const [crawfordState, setCrawfordState] = useState<CrawfordState>('none');
   const [crawfordBaseScore, setCrawfordBaseScore] = useState(0);
 
-  const systemColorScheme = useColorScheme();
+  const systemScheme = useColorScheme() ?? 'light';
   const [storedMode, setStoredMode] = useState<AppearanceMode>(
     () => (Settings.get('appearance_mode') as AppearanceMode | null) ?? 'system',
   );
@@ -87,7 +87,7 @@ function App() {
   const effectiveScheme: 'light' | 'dark' =
     storedMode === 'dark' ? 'dark'
     : storedMode === 'light' ? 'light'
-    : (systemColorScheme ?? 'light');
+    : systemScheme;
   const t = effectiveScheme === 'dark' ? DARK : LIGHT;
 
   const score1Anim = useRef(new Animated.Value(1)).current;
@@ -149,7 +149,11 @@ function App() {
     );
   }, [player1Score, player2Score, matchLength, crawfordState, crawfordBaseScore]);
 
-  // Refresh appearance preference when returning from iOS Settings
+  // Re-read the Settings.bundle appearance preference when the app becomes active.
+  // useColorScheme() (backed by useSyncExternalStore since RN 0.72) handles the
+  // system color scheme reactively; no manual Appearance polling is needed for that.
+  // Settings.bundle has no change notifications, so AppState is the only way to
+  // pick up edits the user made in the iOS Settings app while the app was backgrounded.
   useEffect(() => {
     const sub = AppState.addEventListener('change', nextState => {
       if (nextState === 'active') {
