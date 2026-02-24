@@ -8,7 +8,7 @@ import {
   StatusBar,
   Alert,
   Animated,
-  useColorScheme,
+  Appearance,
   Settings,
   AppState,
 } from 'react-native';
@@ -79,7 +79,9 @@ function App() {
   const [crawfordState, setCrawfordState] = useState<CrawfordState>('none');
   const [crawfordBaseScore, setCrawfordBaseScore] = useState(0);
 
-  const systemColorScheme = useColorScheme();
+  const [systemScheme, setSystemScheme] = useState<'light' | 'dark'>(
+    () => Appearance.getColorScheme() ?? 'light',
+  );
   const [storedMode, setStoredMode] = useState<AppearanceMode>(
     () => (Settings.get('appearance_mode') as AppearanceMode | null) ?? 'system',
   );
@@ -87,7 +89,7 @@ function App() {
   const effectiveScheme: 'light' | 'dark' =
     storedMode === 'dark' ? 'dark'
     : storedMode === 'light' ? 'light'
-    : (systemColorScheme ?? 'light');
+    : systemScheme;
   const t = effectiveScheme === 'dark' ? DARK : LIGHT;
 
   const score1Anim = useRef(new Animated.Value(1)).current;
@@ -149,14 +151,26 @@ function App() {
     );
   }, [player1Score, player2Score, matchLength, crawfordState, crawfordBaseScore]);
 
-  // Refresh appearance preference when returning from iOS Settings
+  // Keep system color scheme in sync:
+  // - Appearance.addChangeListener handles changes while the app is in the foreground
+  // - AppState 'active' forces a fresh read after returning from background,
+  //   where the hook-based useColorScheme may not have propagated yet.
+  // Both listeners also re-read the Settings.bundle preference so the user's
+  // in-app appearance override is always current.
   useEffect(() => {
-    const sub = AppState.addEventListener('change', nextState => {
+    const appearanceSub = Appearance.addChangeListener(({ colorScheme }) => {
+      setSystemScheme(colorScheme ?? 'light');
+    });
+    const appStateSub = AppState.addEventListener('change', nextState => {
       if (nextState === 'active') {
         setStoredMode((Settings.get('appearance_mode') as AppearanceMode | null) ?? 'system');
+        setSystemScheme(Appearance.getColorScheme() ?? 'light');
       }
     });
-    return () => sub.remove();
+    return () => {
+      appearanceSub.remove();
+      appStateSub.remove();
+    };
   }, []);
 
   const triggerBounce = (anim: Animated.Value) => {
