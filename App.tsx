@@ -153,10 +153,8 @@ function App() {
 
   // Keep system color scheme in sync:
   // - Appearance.addChangeListener handles changes while the app is in the foreground
-  // - AppState 'active' forces a fresh read after returning from background,
-  //   where the hook-based useColorScheme may not have propagated yet.
-  // Both listeners also re-read the Settings.bundle preference so the user's
-  // in-app appearance override is always current.
+  // - AppState 'active' forces a fresh read of both the system scheme and the
+  //   Settings.bundle preference after returning from background
   useEffect(() => {
     const appearanceSub = Appearance.addChangeListener(({ colorScheme }) => {
       setSystemScheme(colorScheme ?? 'light');
