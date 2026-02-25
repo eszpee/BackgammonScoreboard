@@ -171,6 +171,7 @@ function App() {
   };
 
   const resetScores = () => {
+    HapticFeedback.trigger('notificationWarning', HAPTIC_OPTIONS);
     setPlayer1Score(0);
     setPlayer2Score(0);
     setCrawfordState('none');
@@ -228,6 +229,7 @@ function App() {
       {
         text: 'OK',
         onPress: () => {
+          HapticFeedback.trigger('impactMedium', HAPTIC_OPTIONS);
           const { player1Score: p1, player2Score: p2, matchLength: ml, crawfordState: cs } = stateRef.current;
           const latestScore = player === 1 ? p1 : p2;
           if (latestScore <= 0) return;
@@ -342,6 +344,7 @@ function App() {
         {/* Center Panel */}
         <Pressable
           style={({ pressed }) => [styles.centerWrapper, { opacity: pressed ? 0.84 : 1 }]}
+          onPressIn={() => HapticFeedback.trigger('selection', HAPTIC_OPTIONS)}
           onPress={handleMatchButtonPress}
           onLongPress={handleMatchLongPress}
           onPressOut={handleMatchPressOut}
