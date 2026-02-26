@@ -1,97 +1,56 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# Backgammon Scoreboard
 
-# Getting Started
+A minimal iOS scoreboard for tournament backgammon matches. Designed to do one thing well: track match scores with Crawford rule support. No player names, no timers, no doubling cube — if it wouldn't be on a paper scoreboard, it isn't here.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+## Features
 
-## Step 1: Start Metro
+- **Two score panels** — tap either side to add a point; the score bounces to confirm
+- **Score correction** — long-press a panel to decrease a score by one (confirmation required)
+- **Match length** — tap the center when scores are 0–0 to cycle forward (3, 5, 7 … 21); long-press to cycle backward
+- **New match** — tap or long-press the center while a match is in progress to reset scores
+- **Crawford rule** — automatically detected and displayed; transitions to Post-Crawford after the following game
+- **Match over alert** — shown when a player reaches the target score, with an option to start a new match
+- **State persistence** — match state is saved and silently restored when the app is reopened
+- **Screen always on** — the display stays awake while the app is open
+- **Haptic feedback** — taps, corrections, and match events all have distinct feedback
+- **Light and dark themes** — follows the system appearance by default; override in iOS Settings
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+## Appearance
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+The app supports light mode, dark mode, and system-following mode. To change the preference, go to **iOS Settings → Backgammon Scoreboard → Appearance**.
 
-```sh
-# Using npm
-npm start
+## Development
 
-# OR using Yarn
-yarn start
-```
+### Prerequisites
 
-## Step 2: Build and run your app
+- Node 20+
+- Xcode 16+ with iOS SDK
+- CocoaPods (`gem install cocoapods` or via Bundler)
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
-
-### Android
-
-```sh
-# Using npm
-npm run android
-
-# OR using Yarn
-yarn android
-```
-
-### iOS
-
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
-
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
+### Install dependencies
 
 ```sh
-bundle install
-```
-
-Then, and every time you update your native dependencies, run:
-
-```sh
+npm install
+bundle install        # installs CocoaPods via Bundler
 bundle exec pod install
 ```
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
+### Run on iOS
 
 ```sh
-# Using npm
 npm run ios
-
-# OR using Yarn
-yarn ios
 ```
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+Or open `ios/BackgammonScoreboard.xcworkspace` in Xcode and run from there.
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+## Tech stack
 
-## Step 3: Modify your app
+- React Native 0.81.4 (New Architecture)
+- TypeScript
+- [`@react-native-async-storage/async-storage`](https://github.com/react-native-async-storage/async-storage) — state persistence
+- [`react-native-haptic-feedback`](https://github.com/mkuczera/react-native-haptic-feedback) — haptics
+- [`react-native-keep-awake`](https://github.com/corbt/react-native-keep-awake) — screen always on
 
-Now that you have successfully run the app, let's make changes!
+## License
 
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
-
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
-
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
-
-## Congratulations! :tada:
-
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+MIT
