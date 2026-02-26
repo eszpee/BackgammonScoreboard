@@ -6,16 +6,11 @@ import {
   StyleSheet,
   StatusBar,
   Alert,
+  Animated,
   useColorScheme,
   Settings,
   AppState,
 } from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  runOnJS,
-} from 'react-native-reanimated';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import HapticFeedback from 'react-native-haptic-feedback';
@@ -77,6 +72,8 @@ const DARK = {
 // Simulates a flip-chart page rotating around the top-edge (coil) axis.
 // Two-phase animation: old page lifts to edge-on (0° → 90°), then new page
 // falls into place (90° → 0°), with content swapped at the invisible pivot.
+// Uses the built-in Animated API with useNativeDriver: true — UI-thread animation,
+// no extra dependencies required.
 
 interface FlipCardProps {
   value: number;
@@ -88,9 +85,8 @@ interface FlipCardProps {
 function FlipCard({ value, renderContent, style, cardStyle }: FlipCardProps) {
   const [shown, setShown] = useState(value);
   const prevValue = useRef(value);
-  const flip = useSharedValue(0);
-  // Half-height of the card; shared so the worklet reads the latest value.
-  const halfH = useSharedValue(0);
+  const flipAnim = useRef(new Animated.Value(0)).current;
+  const [cardHeight, setCardHeight] = useState(0);
 
   useEffect(() => {
     if (value === prevValue.current) return;
@@ -100,39 +96,49 @@ function FlipCard({ value, renderContent, style, cardStyle }: FlipCardProps) {
     const next = value;
 
     // No layout yet → update instantly without animation.
-    if (halfH.value === 0) {
+    if (cardHeight === 0) {
       setShown(next);
       return;
     }
 
     // Phase 1: current page pivots away (bottom goes into screen).
-    flip.value = withTiming(dir * 90, { duration: FLIP_DURATION_OUT }, finished => {
+    Animated.timing(flipAnim, {
+      toValue: dir * 90,
+      duration: FLIP_DURATION_OUT,
+      useNativeDriver: true,
+    }).start(({ finished }) => {
       if (finished) {
         // Swap content at the invisible edge-on moment.
-        runOnJS(setShown)(next);
+        setShown(next);
         // Jump to opposite side so the new page arrives from the same direction.
-        flip.value = -dir * 90;
+        flipAnim.setValue(-dir * 90);
         // Phase 2: new page falls into place.
-        flip.value = withTiming(0, { duration: FLIP_DURATION_IN });
+        Animated.timing(flipAnim, {
+          toValue: 0,
+          duration: FLIP_DURATION_IN,
+          useNativeDriver: true,
+        }).start();
       }
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value]);
+  }, [value, cardHeight]);
+
+  const half = cardHeight / 2;
 
   // Rotate around the TOP edge (coil axis) using the translate-rotate-translate trick.
-  const animStyle = useAnimatedStyle(() => ({
+  const animStyle = {
     transform: [
       { perspective: 900 },
-      { translateY: -halfH.value },
-      { rotateX: `${flip.value}deg` },
-      { translateY: halfH.value },
+      { translateY: -half },
+      { rotateX: flipAnim.interpolate({ inputRange: [-90, 90], outputRange: ['-90deg', '90deg'] }) },
+      { translateY: half },
     ],
-  }));
+  };
 
   return (
     <View
       style={style}
-      onLayout={e => { halfH.value = e.nativeEvent.layout.height / 2; }}
+      onLayout={e => setCardHeight(e.nativeEvent.layout.height)}
     >
       <Animated.View style={[StyleSheet.absoluteFill, cardStyle as object, animStyle]}>
         {renderContent(shown)}
