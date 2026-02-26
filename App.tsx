@@ -39,7 +39,7 @@ const LIGHT = {
   matchLabel:       '#888888',
   matchNumber:      '#111111',
   coilBg:           '#f0ede8',
-  coilBorder:       '#3c3c3e',
+  coilBorder:       '#b0aeab',
   hintText:         '#6e6b68',
   statusBar:        'dark-content' as const,
   shadowOpacity:    0.18,
