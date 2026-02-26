@@ -66,8 +66,12 @@ yarn-error.log
 # testing
 /coverage
 
-# Claude Code
-.claude/worktrees/
+# AI / Editor tooling (personal, not part of source)
+.claude/
+.clavix/
+.cursor/
+.skills/
+.1code/
 
 # Yarn
 .yarn/*
