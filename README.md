@@ -51,6 +51,10 @@ Or open `ios/BackgammonScoreboard.xcworkspace` in Xcode and run from there.
 - [`react-native-haptic-feedback`](https://github.com/mkuczera/react-native-haptic-feedback) — haptics
 - [`react-native-keep-awake`](https://github.com/corbt/react-native-keep-awake) — screen always on
 
+## Building for production
+
+The repository includes `android/app/debug.keystore` — this is the standard React Native debug signing key (password: `android`). It is intentionally versioned for local development and CI. **Never use it for production.** For a release build, generate a new keystore and configure signing outside of version control.
+
 ## License
 
 MIT
