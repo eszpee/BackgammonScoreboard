@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
-  SafeAreaView,
   Text,
   View,
   Pressable,
@@ -12,6 +11,7 @@ import {
   Settings,
   AppState,
 } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import HapticFeedback from 'react-native-haptic-feedback';
 import KeepAwake from 'react-native-keep-awake';
@@ -311,6 +311,7 @@ function App() {
   };
 
   return (
+    <SafeAreaProvider>
     <SafeAreaView style={[styles.container, { backgroundColor: t.background }]}>
       <StatusBar barStyle={t.statusBar} />
 
@@ -393,6 +394,7 @@ function App() {
         </Pressable>
       </View>
     </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
 
