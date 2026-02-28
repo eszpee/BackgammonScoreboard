@@ -20,6 +20,9 @@ const STORAGE_KEY = 'matchState';
 const HAPTIC_OPTIONS = { enableVibrateFallback: true, ignoreAndroidSystemSettings: false };
 const MATCH_LENGTHS = [3, 5, 7, 9, 11, 13, 15, 17, 21];
 const SCORE_FONT_SIZE = 210;
+const FLIP_DURATION_OUT = 180;
+const FLIP_DURATION_IN = 200;
+const BUILD_ID = '20260228-3';
 
 type CrawfordState = 'none' | 'crawford' | 'post-crawford';
 type AppearanceMode = 'system' | 'light' | 'dark';
@@ -62,6 +65,108 @@ const DARK = {
   postCrawfordBg:   '#64748b',
 };
 
+// ─── FlipCard ────────────────────────────────────────────────────────────────
+// Simulates a flip-chart page rotating around the top-edge (coil) axis.
+// Two-phase animation: old page lifts to edge-on (0° → 90°), then new page
+// falls into place (90° → 0°), with content swapped at the invisible pivot.
+// Uses the built-in Animated API with useNativeDriver: true — UI-thread animation,
+// no extra dependencies required.
+
+interface FlipCardProps {
+  value: number;
+  renderContent: (v: number) => React.ReactNode;
+  style?: object;
+  cardStyle?: object;
+}
+
+function FlipCard({ value, renderContent, style, cardStyle }: FlipCardProps) {
+  // Two-layer model:
+  //   bottom – static card always visible behind the top layer (destination value)
+  //   top    – animated card that rotates away/in around the top (coil) axis
+  const [bottomVal, setBottomVal] = useState(value);
+  const [topVal, setTopVal] = useState(value);
+  const prevValue = useRef(value);
+  const flipAnim = useRef(new Animated.Value(0)).current;
+  const [cardHeight, setCardHeight] = useState(0);
+
+  useEffect(() => {
+    if (value === prevValue.current) return;
+    const oldValue = prevValue.current;
+    const dir: 1 | -1 = value > oldValue ? 1 : -1;
+    prevValue.current = value;
+
+    // No layout yet → update instantly without animation.
+    if (cardHeight === 0) {
+      setBottomVal(value);
+      setTopVal(value);
+      return;
+    }
+
+    if (dir === 1) {
+      // INCREMENT: new card appears underneath; old top card folds backward from coil axis.
+      setBottomVal(value);        // bottom shows destination immediately
+      setTopVal(oldValue);        // ensure top shows the correct current value (guards against rapid taps)
+      flipAnim.setValue(0);       // top is flat
+      Animated.timing(flipAnim, {
+        toValue: 90,              // top folds backward (away from viewer)
+        duration: FLIP_DURATION_OUT,
+        useNativeDriver: true,
+      }).start(({ finished }) => {
+        if (finished) {
+          setTopVal(value);       // sync top to new value
+          flipAnim.setValue(0);   // reset top to flat
+        }
+      });
+    } else {
+      // DECREMENT: new lower card falls in from above the coil, covering the old card.
+      setBottomVal(oldValue);     // keep old value as the background
+      setTopVal(value);           // top shows new (lower) value
+      flipAnim.setValue(90);      // top starts "behind" coil (same position as end of increment)
+      Animated.timing(flipAnim, {
+        toValue: 0,               // top falls to flat, covering bottom
+        duration: FLIP_DURATION_IN,
+        useNativeDriver: true,
+      }).start(({ finished }) => {
+        if (finished) {
+          setBottomVal(value);    // sync bottom
+        }
+      });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value, cardHeight]);
+
+  const half = cardHeight / 2;
+  const rotateX = flipAnim.interpolate({ inputRange: [-90, 90], outputRange: ['-90deg', '90deg'] });
+
+  // Rotate around the TOP edge (coil axis) using the translate-rotate-translate trick.
+  const animStyle = {
+    transform: [
+      { perspective: 900 },
+      { translateY: -half },
+      { rotateX },
+      { translateY: half },
+    ],
+  };
+
+  return (
+    <View
+      style={style}
+      onLayout={e => setCardHeight(e.nativeEvent.layout.height)}
+    >
+      {/* Bottom layer: destination card, becomes visible as top card rotates away */}
+      <View style={[StyleSheet.absoluteFill, cardStyle as object]}>
+        {renderContent(bottomVal)}
+      </View>
+      {/* Top layer: animated card rotating around the top (coil) axis */}
+      <Animated.View style={[StyleSheet.absoluteFill, cardStyle as object, animStyle]}>
+        {renderContent(topVal)}
+      </Animated.View>
+    </View>
+  );
+}
+
+// ─── CoilBinding ─────────────────────────────────────────────────────────────
+
 function CoilBinding({ count = 14, bgColor, borderColor }: { count?: number; bgColor: string; borderColor: string }) {
   return (
     <View style={styles.coilRow}>
@@ -71,6 +176,8 @@ function CoilBinding({ count = 14, bgColor, borderColor }: { count?: number; bgC
     </View>
   );
 }
+
+// ─── App ─────────────────────────────────────────────────────────────────────
 
 function App() {
   const [player1Score, setPlayer1Score] = useState(0);
@@ -90,8 +197,6 @@ function App() {
     : systemScheme;
   const t = effectiveScheme === 'dark' ? DARK : LIGHT;
 
-  const score1Anim = useRef(new Animated.Value(1)).current;
-  const score2Anim = useRef(new Animated.Value(1)).current;
   const isRestored = useRef(false);
   const stateRef = useRef<MatchState>({ player1Score: 0, player2Score: 0, matchLength: 5, crawfordState: 'none', crawfordBaseScore: 0 });
   const cycleIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -150,10 +255,6 @@ function App() {
   }, [player1Score, player2Score, matchLength, crawfordState, crawfordBaseScore]);
 
   // Re-read the Settings.bundle appearance preference when the app becomes active.
-  // useColorScheme() (backed by useSyncExternalStore since RN 0.72) handles the
-  // system color scheme reactively; no manual Appearance polling is needed for that.
-  // Settings.bundle has no change notifications, so AppState is the only way to
-  // pick up edits the user made in the iOS Settings app while the app was backgrounded.
   useEffect(() => {
     const sub = AppState.addEventListener('change', nextState => {
       if (nextState === 'active') {
@@ -162,13 +263,6 @@ function App() {
     });
     return () => sub.remove();
   }, []);
-
-  const triggerBounce = (anim: Animated.Value) => {
-    Animated.sequence([
-      Animated.timing(anim, { toValue: 1.15, duration: 80, useNativeDriver: true }),
-      Animated.spring(anim, { toValue: 1, useNativeDriver: true }),
-    ]).start();
-  };
 
   const resetScores = () => {
     HapticFeedback.trigger('notificationWarning', HAPTIC_OPTIONS);
@@ -185,7 +279,6 @@ function App() {
     if (player === 1) {
       const newScore = player1Score + points;
       setPlayer1Score(newScore);
-      triggerBounce(score1Anim);
 
       if (newScore >= matchLength) {
         HapticFeedback.trigger('notificationSuccess', HAPTIC_OPTIONS);
@@ -202,7 +295,6 @@ function App() {
     } else {
       const newScore = player2Score + points;
       setPlayer2Score(newScore);
-      triggerBounce(score2Anim);
 
       if (newScore >= matchLength) {
         HapticFeedback.trigger('notificationSuccess', HAPTIC_OPTIONS);
@@ -310,88 +402,107 @@ function App() {
     elevation: 8,
   };
 
+  // ── render helpers ──
+
+  const renderScore = (v: number, otherScore: number) => (
+    <>
+      <Text
+        style={[styles.scoreText, { color: t.scoreText }]}
+        adjustsFontSizeToFit
+        numberOfLines={1}
+        minimumFontScale={0.4}
+      >
+        {v}
+      </Text>
+      {v === 0 && otherScore === 0 && (
+        <Text style={[styles.hintText, { color: t.hintText }]}>tap to increase{'\n'}hold to correct</Text>
+      )}
+    </>
+  );
+
+  const renderCenter = (ml: number) => (
+    <>
+      <Text style={[styles.matchToLabel, { color: t.matchLabel }]} maxFontSizeMultiplier={1.5}>MATCH TO</Text>
+      <Text style={[styles.matchNumberLabel, { color: t.matchNumber }]} maxFontSizeMultiplier={1.5}>{ml}</Text>
+      {crawfordState !== 'none' && (
+        <View style={[styles.crawfordBadge, { backgroundColor: crawfordState === 'crawford' ? t.crawfordBg : t.postCrawfordBg }]}>
+          <Text style={styles.crawfordText} allowFontScaling={false}>
+            {crawfordState === 'crawford' ? 'CRAWFORD' : 'POST CRAWFORD'}
+          </Text>
+        </View>
+      )}
+    </>
+  );
+
   return (
     <SafeAreaProvider>
     <SafeAreaView style={[styles.container, { backgroundColor: t.background }]}>
       <StatusBar barStyle={t.statusBar} />
+      <Text style={styles.buildId}>{BUILD_ID}</Text>
 
-      <View style={styles.mainContent}>
-        {/* Player 1 Panel */}
-        <Pressable
-          style={({ pressed }) => [styles.panelWrapper, { opacity: pressed ? 0.84 : 1 }]}
-          onPressIn={() => HapticFeedback.trigger('selection', HAPTIC_OPTIONS)}
-          onPress={() => addPoint(1, 1)}
-          onLongPress={() => decreasePoint(1)}
-          accessibilityRole="button"
-          accessibilityLabel={`Left player score: ${player1Score}`}
-          accessibilityHint="Tap to add a point, hold to decrease"
-        >
-          <CoilBinding bgColor={t.coilBg} borderColor={t.coilBorder} />
-          <View style={[styles.scoreCard, { backgroundColor: t.card }, cardShadow]}>
-            <Animated.Text
-              style={[styles.scoreText, { color: t.scoreText, transform: [{ scale: score1Anim }] }]}
-              adjustsFontSizeToFit
-              numberOfLines={1}
-              minimumFontScale={0.4}
-            >
-              {player1Score}
-            </Animated.Text>
-            {player1Score === 0 && player2Score === 0 && (
-              <Text style={[styles.hintText, { color: t.hintText }]}>tap to increase{'\n'}hold to correct</Text>
-            )}
-          </View>
-        </Pressable>
+      {/* Board: slight rotateX gives the "looking down at a physical scoreboard on a table" perspective */}
+      <View style={styles.boardPerspective}>
+        <View style={styles.mainContent}>
 
-        {/* Center Panel */}
-        <Pressable
-          style={({ pressed }) => [styles.centerWrapper, { opacity: pressed ? 0.84 : 1 }]}
-          onPressIn={() => HapticFeedback.trigger('selection', HAPTIC_OPTIONS)}
-          onPress={handleMatchButtonPress}
-          onLongPress={handleMatchLongPress}
-          onPressOut={handleMatchPressOut}
-          accessibilityRole="button"
-          accessibilityLabel={`Match to ${matchLength}${crawfordState !== 'none' ? `, ${crawfordState === 'crawford' ? 'Crawford game' : 'Post Crawford'}` : ''}`}
-          accessibilityHint="Tap to change match length or start new match, hold to cycle backward"
-        >
-          <CoilBinding count={6} bgColor={t.coilBg} borderColor={t.coilBorder} />
-          <View style={[styles.centerCard, { backgroundColor: t.card }, cardShadow]}>
-            <Text style={[styles.matchToLabel, { color: t.matchLabel }]} maxFontSizeMultiplier={1.5}>MATCH TO</Text>
-            <Text style={[styles.matchNumberLabel, { color: t.matchNumber }]} maxFontSizeMultiplier={1.5}>{matchLength}</Text>
-            {crawfordState !== 'none' && (
-              <View style={[styles.crawfordBadge, { backgroundColor: crawfordState === 'crawford' ? t.crawfordBg : t.postCrawfordBg }]}>
-                <Text style={styles.crawfordText} allowFontScaling={false}>
-                  {crawfordState === 'crawford' ? 'CRAWFORD' : 'POST CRAWFORD'}
-                </Text>
-              </View>
-            )}
-          </View>
-        </Pressable>
+          {/* Player 1 Panel */}
+          <Pressable
+            style={({ pressed }) => [styles.panelWrapper, { opacity: pressed ? 0.84 : 1 }]}
+            onPressIn={() => HapticFeedback.trigger('selection', HAPTIC_OPTIONS)}
+            onPress={() => addPoint(1, 1)}
+            onLongPress={() => decreasePoint(1)}
+            accessibilityRole="button"
+            accessibilityLabel={`Left player score: ${player1Score}`}
+            accessibilityHint="Tap to add a point, hold to decrease"
+          >
+            <CoilBinding bgColor={t.coilBg} borderColor={t.coilBorder} />
+            <FlipCard
+              value={player1Score}
+              renderContent={v => renderScore(v, player2Score)}
+              style={styles.flipCardFill}
+              cardStyle={{ ...styles.scoreCard, backgroundColor: t.card, ...cardShadow }}
+            />
+          </Pressable>
 
-        {/* Player 2 Panel */}
-        <Pressable
-          style={({ pressed }) => [styles.panelWrapper, { opacity: pressed ? 0.84 : 1 }]}
-          onPressIn={() => HapticFeedback.trigger('selection', HAPTIC_OPTIONS)}
-          onPress={() => addPoint(2, 1)}
-          onLongPress={() => decreasePoint(2)}
-          accessibilityRole="button"
-          accessibilityLabel={`Right player score: ${player2Score}`}
-          accessibilityHint="Tap to add a point, hold to decrease"
-        >
-          <CoilBinding bgColor={t.coilBg} borderColor={t.coilBorder} />
-          <View style={[styles.scoreCard, { backgroundColor: t.card }, cardShadow]}>
-            <Animated.Text
-              style={[styles.scoreText, { color: t.scoreText, transform: [{ scale: score2Anim }] }]}
-              adjustsFontSizeToFit
-              numberOfLines={1}
-              minimumFontScale={0.4}
-            >
-              {player2Score}
-            </Animated.Text>
-            {player1Score === 0 && player2Score === 0 && (
-              <Text style={[styles.hintText, { color: t.hintText }]}>tap to increase{'\n'}hold to correct</Text>
-            )}
-          </View>
-        </Pressable>
+          {/* Center Panel */}
+          <Pressable
+            style={({ pressed }) => [styles.centerWrapper, { opacity: pressed ? 0.84 : 1 }]}
+            onPressIn={() => HapticFeedback.trigger('selection', HAPTIC_OPTIONS)}
+            onPress={handleMatchButtonPress}
+            onLongPress={handleMatchLongPress}
+            onPressOut={handleMatchPressOut}
+            accessibilityRole="button"
+            accessibilityLabel={`Match to ${matchLength}${crawfordState !== 'none' ? `, ${crawfordState === 'crawford' ? 'Crawford game' : 'Post Crawford'}` : ''}`}
+            accessibilityHint="Tap to change match length or start new match, hold to cycle backward"
+          >
+            <CoilBinding count={6} bgColor={t.coilBg} borderColor={t.coilBorder} />
+            <FlipCard
+              value={matchLength}
+              renderContent={renderCenter}
+              style={styles.flipCardCenter}
+              cardStyle={{ ...styles.centerCard, backgroundColor: t.card, ...cardShadow }}
+            />
+          </Pressable>
+
+          {/* Player 2 Panel */}
+          <Pressable
+            style={({ pressed }) => [styles.panelWrapper, { opacity: pressed ? 0.84 : 1 }]}
+            onPressIn={() => HapticFeedback.trigger('selection', HAPTIC_OPTIONS)}
+            onPress={() => addPoint(2, 1)}
+            onLongPress={() => decreasePoint(2)}
+            accessibilityRole="button"
+            accessibilityLabel={`Right player score: ${player2Score}`}
+            accessibilityHint="Tap to add a point, hold to decrease"
+          >
+            <CoilBinding bgColor={t.coilBg} borderColor={t.coilBorder} />
+            <FlipCard
+              value={player2Score}
+              renderContent={v => renderScore(v, player1Score)}
+              style={styles.flipCardFill}
+              cardStyle={{ ...styles.scoreCard, backgroundColor: t.card, ...cardShadow }}
+            />
+          </Pressable>
+
+        </View>
       </View>
     </SafeAreaView>
     </SafeAreaProvider>
@@ -401,6 +512,15 @@ function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  // Subtle tilt: makes the scoreboard look like a physical object sitting on a table
+  // viewed from slightly above. The top edge (coils) recedes; the bottom comes forward.
+  boardPerspective: {
+    flex: 1,
+    transform: [
+      { perspective: 1200 },
+      { rotateX: '-10deg' },
+    ],
   },
   mainContent: {
     flex: 1,
@@ -421,6 +541,13 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     alignSelf: 'flex-start',
   },
+  // FlipCard containers (the outer View that defines bounds)
+  flipCardFill: {
+    flex: 1,
+  },
+  flipCardCenter: {
+    height: 172,
+  },
   // Coil binding
   coilRow: {
     flexDirection: 'row',
@@ -437,7 +564,7 @@ const styles = StyleSheet.create({
     borderRadius: 5.5,
     borderWidth: 2.5,
   },
-  // Score card
+  // Score card (applied to FlipCard's inner Animated.View via cardStyle)
   scoreCard: {
     flex: 1,
     borderRadius: 5,
@@ -457,11 +584,7 @@ const styles = StyleSheet.create({
     fontSize: SCORE_FONT_SIZE,
     fontFamily: 'HelveticaNeue-CondensedBlack',
     letterSpacing: -2,
-    // Collapse the large internal leading from HelveticaNeue-CondensedBlack's
-    // ascender metrics so the layout box matches the visible cap height.
     lineHeight: SCORE_FONT_SIZE,
-    // Empirical offset to optically center glyphs: the font's ascender space
-    // above the cap height is larger than the descender space below the baseline.
     marginTop: -12,
   },
   // Center panel text
@@ -504,6 +627,15 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     lineHeight: 17,
     textAlign: 'center',
+  },
+  buildId: {
+    position: 'absolute',
+    bottom: 20,
+    right: 24,
+    fontSize: 9,
+    fontFamily: 'Menlo',
+    color: 'rgba(128, 128, 128, 0.35)',
+    zIndex: 99,
   },
 });
 
