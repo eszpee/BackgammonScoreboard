@@ -22,6 +22,7 @@ const MATCH_LENGTHS = [3, 5, 7, 9, 11, 13, 15, 17, 21];
 const SCORE_FONT_SIZE = 210;
 const FLIP_DURATION_OUT = 180;
 const FLIP_DURATION_IN = 200;
+const BUILD_ID = '20260228-2';
 
 type CrawfordState = 'none' | 'crawford' | 'post-crawford';
 type AppearanceMode = 'system' | 'light' | 'dark';
@@ -83,54 +84,69 @@ interface FlipCardProps {
 }
 
 function FlipCard({ value, renderContent, style, cardStyle }: FlipCardProps) {
-  const [shown, setShown] = useState(value);
+  // Two-layer model:
+  //   bottom – static card always visible behind the top layer (destination value)
+  //   top    – animated card that rotates away/in around the top (coil) axis
+  const [bottomVal, setBottomVal] = useState(value);
+  const [topVal, setTopVal] = useState(value);
   const prevValue = useRef(value);
   const flipAnim = useRef(new Animated.Value(0)).current;
   const [cardHeight, setCardHeight] = useState(0);
 
   useEffect(() => {
     if (value === prevValue.current) return;
-
-    const dir: 1 | -1 = value > prevValue.current ? 1 : -1;
+    const oldValue = prevValue.current;
+    const dir: 1 | -1 = value > oldValue ? 1 : -1;
     prevValue.current = value;
-    const next = value;
 
     // No layout yet → update instantly without animation.
     if (cardHeight === 0) {
-      setShown(next);
+      setBottomVal(value);
+      setTopVal(value);
       return;
     }
 
-    // Phase 1: current page pivots away (bottom goes into screen).
-    Animated.timing(flipAnim, {
-      toValue: dir * 90,
-      duration: FLIP_DURATION_OUT,
-      useNativeDriver: true,
-    }).start(({ finished }) => {
-      if (finished) {
-        // Swap content at the invisible edge-on moment.
-        setShown(next);
-        // Jump to opposite side so the new page arrives from the same direction.
-        flipAnim.setValue(-dir * 90);
-        // Phase 2: new page falls into place.
-        Animated.timing(flipAnim, {
-          toValue: 0,
-          duration: FLIP_DURATION_IN,
-          useNativeDriver: true,
-        }).start();
-      }
-    });
+    if (dir === 1) {
+      // INCREMENT: new card appears underneath; old top card folds backward from coil axis.
+      setBottomVal(value);        // bottom shows destination immediately
+      flipAnim.setValue(0);       // top is flat
+      Animated.timing(flipAnim, {
+        toValue: 90,              // top folds backward (away from viewer)
+        duration: FLIP_DURATION_OUT,
+        useNativeDriver: true,
+      }).start(({ finished }) => {
+        if (finished) {
+          setTopVal(value);       // sync top to new value
+          flipAnim.setValue(0);   // reset top to flat
+        }
+      });
+    } else {
+      // DECREMENT: new lower card falls in from above the coil, covering the old card.
+      setBottomVal(oldValue);     // keep old value as the background
+      setTopVal(value);           // top shows new (lower) value
+      flipAnim.setValue(90);      // top starts "behind" coil (same position as end of increment)
+      Animated.timing(flipAnim, {
+        toValue: 0,               // top falls to flat, covering bottom
+        duration: FLIP_DURATION_IN,
+        useNativeDriver: true,
+      }).start(({ finished }) => {
+        if (finished) {
+          setBottomVal(value);    // sync bottom
+        }
+      });
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value, cardHeight]);
 
   const half = cardHeight / 2;
+  const rotateX = flipAnim.interpolate({ inputRange: [-90, 90], outputRange: ['-90deg', '90deg'] });
 
   // Rotate around the TOP edge (coil axis) using the translate-rotate-translate trick.
   const animStyle = {
     transform: [
       { perspective: 900 },
       { translateY: -half },
-      { rotateX: flipAnim.interpolate({ inputRange: [-90, 90], outputRange: ['-90deg', '90deg'] }) },
+      { rotateX },
       { translateY: half },
     ],
   };
@@ -140,8 +156,13 @@ function FlipCard({ value, renderContent, style, cardStyle }: FlipCardProps) {
       style={style}
       onLayout={e => setCardHeight(e.nativeEvent.layout.height)}
     >
+      {/* Bottom layer: destination card, becomes visible as top card rotates away */}
+      <View style={[StyleSheet.absoluteFill, cardStyle as object]}>
+        {renderContent(bottomVal)}
+      </View>
+      {/* Top layer: animated card rotating around the top (coil) axis */}
       <Animated.View style={[StyleSheet.absoluteFill, cardStyle as object, animStyle]}>
-        {renderContent(shown)}
+        {renderContent(topVal)}
       </Animated.View>
     </View>
   );
@@ -420,6 +441,7 @@ function App() {
     <SafeAreaProvider>
     <SafeAreaView style={[styles.container, { backgroundColor: t.background }]}>
       <StatusBar barStyle={t.statusBar} />
+      <Text style={styles.buildId}>{BUILD_ID}</Text>
 
       {/* Board: slight rotateX gives the "looking down at a physical scoreboard on a table" perspective */}
       <View style={styles.boardPerspective}>
@@ -608,6 +630,15 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     lineHeight: 17,
     textAlign: 'center',
+  },
+  buildId: {
+    position: 'absolute',
+    bottom: 20,
+    right: 24,
+    fontSize: 9,
+    fontFamily: 'Menlo',
+    color: 'rgba(128, 128, 128, 0.35)',
+    zIndex: 99,
   },
 });
 
