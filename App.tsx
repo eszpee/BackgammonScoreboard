@@ -22,7 +22,7 @@ const MATCH_LENGTHS = [3, 5, 7, 9, 11, 13, 15, 17, 21];
 const SCORE_FONT_SIZE = 210;
 const FLIP_DURATION_OUT = 180;
 const FLIP_DURATION_IN = 200;
-const BUILD_ID = '20260228-2';
+const BUILD_ID = '20260228-3';
 
 type CrawfordState = 'none' | 'crawford' | 'post-crawford';
 type AppearanceMode = 'system' | 'light' | 'dark';
@@ -38,7 +38,6 @@ interface MatchState {
 const LIGHT = {
   background:       '#f0ede8',
   card:             '#ffffff',
-  cardBack:         '#f5f3f0',
   scoreText:        '#111111',
   matchLabel:       '#888888',
   matchNumber:      '#111111',
@@ -49,13 +48,11 @@ const LIGHT = {
   shadowOpacity:    0.18,
   crawfordBg:       '#c0392b',
   postCrawfordBg:   '#4a5568',
-  cardEdge:         '#d8d5d0',
 };
 
 const DARK = {
   background:       '#1c1a17',
   card:             '#2c2926',
-  cardBack:         '#3a3733',
   scoreText:        '#f0ede8',
   matchLabel:       '#8a8480',
   matchNumber:      '#f0ede8',
@@ -66,7 +63,6 @@ const DARK = {
   shadowOpacity:    0.40,
   crawfordBg:       '#e74c3c',
   postCrawfordBg:   '#64748b',
-  cardEdge:         '#1a1815',
 };
 
 // ─── FlipCard ────────────────────────────────────────────────────────────────
@@ -109,6 +105,7 @@ function FlipCard({ value, renderContent, style, cardStyle }: FlipCardProps) {
     if (dir === 1) {
       // INCREMENT: new card appears underneath; old top card folds backward from coil axis.
       setBottomVal(value);        // bottom shows destination immediately
+      setTopVal(oldValue);        // ensure top shows the correct current value (guards against rapid taps)
       flipAnim.setValue(0);       // top is flat
       Animated.timing(flipAnim, {
         toValue: 90,              // top folds backward (away from viewer)
