@@ -639,4 +639,81 @@ const styles = StyleSheet.create({
   },
 });
 
-export default App;
+interface ErrorBoundaryState {
+  hasError: boolean;
+}
+
+class ErrorBoundary extends React.Component<{ children: React.ReactNode }, ErrorBoundaryState> {
+  state: ErrorBoundaryState = { hasError: false };
+
+  static getDerivedStateFromError(): ErrorBoundaryState {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
+    console.error('App crashed:', error, info.componentStack);
+  }
+
+  handleReset = () => {
+    AsyncStorage.removeItem(STORAGE_KEY).catch(() => {});
+    this.setState({ hasError: false });
+  };
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <View style={errorStyles.container}>
+          <Text style={errorStyles.title}>Something went wrong</Text>
+          <Text style={errorStyles.message}>The app encountered an unexpected error.</Text>
+          <Pressable style={errorStyles.button} onPress={this.handleReset}>
+            <Text style={errorStyles.buttonText}>New Match</Text>
+          </Pressable>
+        </View>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+const errorStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#1c1a17',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 32,
+  },
+  title: {
+    color: '#f0ede8',
+    fontSize: 24,
+    fontWeight: '700',
+    marginBottom: 12,
+  },
+  message: {
+    color: '#a09888',
+    fontSize: 16,
+    marginBottom: 32,
+    textAlign: 'center',
+  },
+  button: {
+    backgroundColor: '#333',
+    paddingHorizontal: 32,
+    paddingVertical: 14,
+    borderRadius: 10,
+  },
+  buttonText: {
+    color: '#f0ede8',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+});
+
+function AppWithBoundary() {
+  return (
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
+  );
+}
+
+export default AppWithBoundary;
