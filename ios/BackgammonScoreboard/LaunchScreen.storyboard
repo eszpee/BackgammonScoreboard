@@ -22,7 +22,7 @@
                             </imageView>
                         </subviews>
                         <viewLayoutGuide key="safeAreaLayoutGuide" id="Bcu-3y-fUS"/>
-                        <color key="backgroundColor" red="0.10196078431372549" green="0.10196078431372549" blue="0.10196078431372549" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <color key="backgroundColor" red="0.94117647058823528" green="0.92941176470588238" blue="0.90980392156862744" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
                             <constraint firstItem="Kx5-ij-9Qm" firstAttribute="leading" secondItem="Ze5-6b-2t3" secondAttribute="leading" id="aCx-CD-GEo"/>
                             <constraint firstItem="Kx5-ij-9Qm" firstAttribute="trailing" secondItem="Ze5-6b-2t3" secondAttribute="trailing" id="bDk-SM-5bI"/>
