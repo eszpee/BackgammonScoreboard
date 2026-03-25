@@ -251,7 +251,7 @@ function App() {
     AsyncStorage.setItem(
       STORAGE_KEY,
       JSON.stringify({ player1Score, player2Score, matchLength, crawfordState, crawfordBaseScore }),
-    );
+    ).catch(() => {});
   }, [player1Score, player2Score, matchLength, crawfordState, crawfordBaseScore]);
 
   // Re-read the Settings.bundle appearance preference when the app becomes active.
