@@ -22,7 +22,7 @@ const MATCH_LENGTHS = [3, 5, 7, 9, 11, 13, 15, 17, 21];
 const SCORE_FONT_SIZE = 210;
 const FLIP_DURATION_OUT = 180;
 const FLIP_DURATION_IN = 200;
-const BUILD_ID = '20260228-3';
+
 
 type CrawfordState = 'none' | 'crawford' | 'post-crawford';
 type AppearanceMode = 'system' | 'light' | 'dark';
@@ -442,7 +442,7 @@ function App() {
     <SafeAreaProvider>
     <SafeAreaView style={[styles.container, { backgroundColor: t.background }]}>
       <StatusBar barStyle={t.statusBar} />
-      <Text style={styles.buildId}>{BUILD_ID}</Text>
+
 
       {/* Board: slight rotateX gives the "looking down at a physical scoreboard on a table" perspective */}
       <View style={styles.boardPerspective}>
@@ -631,15 +631,6 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     lineHeight: 17,
     textAlign: 'center',
-  },
-  buildId: {
-    position: 'absolute',
-    bottom: 20,
-    right: 24,
-    fontSize: 9,
-    fontFamily: 'Menlo',
-    color: 'rgba(128, 128, 128, 0.35)',
-    zIndex: 99,
   },
 });
 
