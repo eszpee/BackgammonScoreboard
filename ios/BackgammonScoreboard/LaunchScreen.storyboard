@@ -16,13 +16,13 @@
                         <rect key="frame" x="0.0" y="0.0" width="667" height="375"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="Kx5-ij-9Qm">
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="Kx5-ij-9Qm">
                                 <rect key="frame" x="0.0" y="0.0" width="667" height="375"/>
                                 <imageReference key="image" image="SplashImage"/>
                             </imageView>
                         </subviews>
                         <viewLayoutGuide key="safeAreaLayoutGuide" id="Bcu-3y-fUS"/>
-                        <color key="backgroundColor" red="0.94117647058823528" green="0.92941176470588238" blue="0.90980392156862744" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <color key="backgroundColor" red="0.10196078431372549" green="0.10196078431372549" blue="0.10196078431372549" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
                             <constraint firstItem="Kx5-ij-9Qm" firstAttribute="leading" secondItem="Ze5-6b-2t3" secondAttribute="leading" id="aCx-CD-GEo"/>
                             <constraint firstItem="Kx5-ij-9Qm" firstAttribute="trailing" secondItem="Ze5-6b-2t3" secondAttribute="trailing" id="bDk-SM-5bI"/>
