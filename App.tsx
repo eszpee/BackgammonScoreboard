@@ -643,4 +643,90 @@ const styles = StyleSheet.create({
   },
 });
 
-export default App;
+interface ErrorBoundaryState {
+  hasError: boolean;
+}
+
+class ErrorBoundary extends React.Component<{ children: React.ReactNode }, ErrorBoundaryState> {
+  state: ErrorBoundaryState = { hasError: false };
+
+  static getDerivedStateFromError(): ErrorBoundaryState {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
+    console.error('App crashed:', error, info.componentStack);
+  }
+
+  handleReset = async () => {
+    try {
+      await AsyncStorage.removeItem(STORAGE_KEY);
+    } catch {
+      // Storage clear failed — proceed with reset anyway
+    }
+    this.setState({ hasError: false });
+  };
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <View style={errorStyles.container}>
+          <Text style={errorStyles.title}>Something went wrong</Text>
+          <Text style={errorStyles.message}>The app encountered an unexpected error.</Text>
+          <Pressable
+            style={errorStyles.button}
+            onPress={this.handleReset}
+            accessibilityRole="button"
+            accessibilityLabel="Start a new match"
+          >
+            <Text style={errorStyles.buttonText}>New Match</Text>
+          </Pressable>
+        </View>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+const errorStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: DARK.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 32,
+  },
+  title: {
+    color: DARK.scoreText,
+    fontSize: 24,
+    fontWeight: '700',
+    marginBottom: 12,
+  },
+  message: {
+    color: DARK.hintText,
+    fontSize: 16,
+    marginBottom: 32,
+    textAlign: 'center',
+  },
+  button: {
+    backgroundColor: DARK.card,
+    paddingHorizontal: 32,
+    paddingVertical: 14,
+    borderRadius: 10,
+  },
+  buttonText: {
+    color: DARK.scoreText,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+});
+
+function AppWithBoundary() {
+  return (
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
+  );
+}
+
+export default AppWithBoundary;
