@@ -251,7 +251,11 @@ function App() {
     AsyncStorage.setItem(
       STORAGE_KEY,
       JSON.stringify({ player1Score, player2Score, matchLength, crawfordState, crawfordBaseScore }),
-    );
+    ).catch(error => {
+      if (__DEV__) {
+        console.warn('[BackgammonScoreboard] Failed to persist match state', error);
+      }
+    });
   }, [player1Score, player2Score, matchLength, crawfordState, crawfordBaseScore]);
 
   // Re-read the Settings.bundle appearance preference when the app becomes active.
