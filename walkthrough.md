@@ -5,12 +5,14 @@
 
 ## Overview
 
-BackgammonScoreboard is a single-file React Native app (~640 lines) that serves as a digital tournament backgammon scoreboard. It's iOS-only, landscape-oriented, and deliberately minimal — if it wouldn't appear on a paper scoreboard, it's not here. No player names, no timers, no doubling cube.
+BackgammonScoreboard is a single-file React Native app (~730 lines) that serves as a digital tournament backgammon scoreboard. It's iOS-only, landscape-oriented, and deliberately minimal — if it wouldn't appear on a paper scoreboard, it's not here. No player names, no timers, no doubling cube.
 
-The entire app lives in `App.tsx`. It exports three components:
+The entire app lives in `App.tsx`. It exports five components:
 - **FlipCard** — an animated card that simulates a physical flip-chart page turn
 - **CoilBinding** — a decorative row of spiral-binding loops along the top of each card
 - **App** — the main component: state, logic, and layout
+- **ErrorBoundary** — a class component that catches render errors and offers crash recovery
+- **AppWithBoundary** — the default export, wrapping `App` in `ErrorBoundary`
 
 ## 1. Imports & Constants
 
