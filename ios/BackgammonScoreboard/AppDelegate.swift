@@ -23,6 +23,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     window = UIWindow(frame: UIScreen.main.bounds)
 
+    // Apply Settings.bundle appearance preference to native UI (Alerts, status bar).
+    // Defaults to dark when no preference is set.
+    let mode = UserDefaults.standard.string(forKey: "appearance_mode") ?? "dark"
+    switch mode {
+    case "light":
+      window?.overrideUserInterfaceStyle = .light
+    case "dark":
+      window?.overrideUserInterfaceStyle = .dark
+    default:
+      window?.overrideUserInterfaceStyle = .unspecified
+    }
+
     factory.startReactNative(
       withModuleName: "BackgammonScoreboard",
       in: window,
