@@ -1,6 +1,7 @@
-# App Store Submission Guide — Backgammon Scoreboard
+# App Store Submission Guide — Minimalistic Backgammon Scoreboard
 
-A step-by-step checklist for publishing **Backgammon Scoreboard** to the Apple App Store.
+A step-by-step checklist for publishing **Minimalistic Backgammon Scoreboard** to the
+Apple App Store.
 This is a first submission, so each step is spelled out. Check boxes off as you go.
 
 ## Reference info (you'll need these repeatedly)
@@ -9,7 +10,8 @@ This is a first submission, so each step is spelled out. Check boxes off as you 
 |---|---|
 | Bundle ID | `com.peterszasz.BackgammonScoreboard` |
 | Apple Team ID | `42X8P6QCN9` |
-| App name (display) | Backgammon Scoreboard |
+| App Store name | Minimalistic Backgammon Scoreboard |
+| Home-screen name | Backgammon Scoreboard (truncates to "Backgammon…") |
 | Marketing version | `1.0` |
 | Build number | `1` |
 | Min iOS | 15.1 — iPhone only, landscape only |
@@ -49,9 +51,10 @@ In App Store Connect → **Business** (also called *Agreements, Tax, and Banking
 In App Store Connect → **Apps** → **＋** → **New App**:
 
 - [ ] Platform: **iOS**
-- [ ] Name: **Backgammon Scoreboard**
-      *(App Store names are globally unique. If taken, use a variant such as
-      "Backgammon Scoreboard — Match". The on-device name does not have to match.)*
+- [ ] Name: **Minimalistic Backgammon Scoreboard**
+      *("Backgammon Scoreboard" alone is already taken on the App Store; the
+      "Minimalistic" prefix makes it unique. The on-device icon name stays
+      "Backgammon Scoreboard" and does not have to match the App Store name.)*
 - [ ] Primary language: **English**
 - [ ] Bundle ID: select **`com.peterszasz.BackgammonScoreboard`** from the dropdown
       *(If it's not listed: register it at developer.apple.com → Certificates, IDs &
@@ -127,7 +130,7 @@ On the app's **1.0 — Prepare for Submission** page.
       *(the Phase 0 Info.plist change should make this not even appear)*
 - [ ] Under **Internal Testing**, create a group / add yourself as a tester
 - [ ] On your iPhone: install **TestFlight** from the App Store, sign in with the **same
-      Apple ID**, install the Backgammon Scoreboard build
+      Apple ID**, install the Minimalistic Backgammon Scoreboard build
 
 ### On-device verification (do all of these, in landscape)
 - [ ] Tap each side panel — score increases, flip animation plays
