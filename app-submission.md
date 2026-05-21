@@ -44,6 +44,29 @@ In App Store Connect → **Business** (also called *Agreements, Tax, and Banking
 > You can start the other phases in parallel — but the app cannot go *on sale* until this
 > is Active.
 
+### EU Digital Services Act — Trader status
+
+App Store Connect requires every developer to declare a **Trader status** under the EU
+DSA. Because this is a **paid app, you are a Trader** — you're commercializing the app,
+and the "non-trader" exception only covers hobbyists with no intent to monetize.
+
+- [ ] Open the **Trader status** declaration in App Store Connect → select **Trader**
+- [ ] Provide the required contact info: **address (or P.O. Box)**, **phone**, **email**
+- [ ] Certify the app complies with applicable EU law
+
+> ⚠️ **This contact info is published publicly** on your App Store product page across all
+> 27 EU countries. As an individual you may use a **P.O. Box** instead of your home
+> address — decide this *before* submitting, since changes require re-verification.
+
+### App Store Small Business Program (recommended)
+
+- [ ] Enrol in the **App Store Small Business Program**
+      (developer.apple.com → Agreements → App Store Small Business Program)
+- [ ] This drops Apple's commission from **30% → 15%** while you earn under $1M/year
+
+> VAT note: Apple is the merchant of record for App Store sales and collects/remits EU
+> VAT itself — you do not need to register for VAT just to sell on the App Store.
+
 ---
 
 ## Phase 2 — Create the app record
@@ -96,8 +119,15 @@ On the app's **1.0 — Prepare for Submission** page.
       *(matches the empty `NSPrivacyCollectedDataTypes` in `PrivacyInfo.xcprivacy`)*
 
 ### Pricing and Availability (separate section)
-- [ ] Set a **price** (choose a tier)
-- [ ] Choose **availability** (all countries, or a subset)
+- [ ] Set a **price** — recommended **$2.99** tier (Apple auto-localizes it to every
+      currency; you pick only one tier)
+- [ ] Choose **availability** — keep the **EU enabled** so the Phase 1 Trader setup is
+      worthwhile; otherwise all countries or a subset
+- [ ] Note: the price can be changed anytime later, freely
+
+> Why $2.99: a fair price for a focused, polished niche tool. $0.99 undervalues it;
+> $4.99+ is a stretch for a first app with no reviews yet. You could launch lower (e.g.
+> $1.99) to gather early reviews and raise later if you prefer.
 
 ---
 
