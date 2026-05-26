@@ -1,6 +1,6 @@
-# App Store Submission Guide — Minimalistic Backgammon Scoreboard
+# App Store Submission Guide — Paper Backgammon Scoreboard
 
-A step-by-step checklist for publishing **Minimalistic Backgammon Scoreboard** to the
+A step-by-step checklist for publishing **Paper Backgammon Scoreboard** to the
 Apple App Store.
 This is a first submission, so each step is spelled out. Check boxes off as you go.
 
@@ -10,7 +10,8 @@ This is a first submission, so each step is spelled out. Check boxes off as you 
 |---|---|
 | Bundle ID | `com.peterszasz.BackgammonScoreboard` |
 | Apple Team ID | `42X8P6QCN9` |
-| App Store name | Minimalistic Backgammon Scoreboard |
+| App Store name | Paper Backgammon Scoreboard |
+| Apple ID (App Store Connect) | `6771722520` |
 | Home-screen name | Backgammon Scoreboard (truncates to "Backgammon…") |
 | Marketing version | `1.0` |
 | Build number | `1` |
@@ -36,32 +37,70 @@ This is a first submission, so each step is spelled out. Check boxes off as you 
 
 In App Store Connect → **Business** (also called *Agreements, Tax, and Banking*):
 
-- [ ] Accept the **Paid Applications Agreement** *(must be done by the account holder)*
-- [ ] Add **bank account** details for payouts
-- [ ] Complete **tax forms** (residency / withholding info for your country)
-- [ ] Confirm the agreement status shows **Active**
+- [x] Accept the **Paid Applications Agreement** — done; appears under **Agreements**
+      with status **"Pending User Info"**
+- [ ] Add **bank account** details for payouts — ⏳ *blocked: Wise account, see note below*
+- [x] Complete **tax forms** — W-8BEN-E submitted, status **Active**
+- [x] Declare **Trader status** (EU DSA) — done, status **Active** (see note below)
+- [ ] Confirm the Paid Apps agreement shows **Active** — ⏳ *it flips from "Pending User
+      Info" to "Active" automatically once the bank account is added; the bank is the only
+      missing item*
 
 > You can start the other phases in parallel — but the app cannot go *on sale* until this
 > is Active.
 
-### EU Digital Services Act — Trader status
+### Bank account — Wise EUR account (in progress)
+
+Account: Wise (Wise Europe SA), Belgium — IBAN `BE96 9056 7675 9105`, BIC `TRWIBEB1XXX`,
+account holder `NOVO-KUNST Kft.`
+
+- App Store Connect's "Add Bank Account" flow returned **"We could not find any banks
+  matching the search criteria"** — Apple's bank directory does not list Wise's Belgian
+  entity.
+- Apple Developer Support (case `102895694220`, agent Jennifer) replied with a generic
+  "try a different branch" message and **referred to the Finance team** via *Contact Us
+  About Financial Information*.
+- ⏳ **Finance team case submitted** (Subject: Banking setup → Category: Add or edit
+  banking information). Vendor ID left blank (none assigned yet — agreement still
+  Pending). Awaiting reply.
+  - Finance Case-ID: `20152487` (Apple Media Services Finance Support,
+    `iTSPayments@apple.com`)
+  - Media Services Team ID shown on the ack: `8A5T6N3965` *(note: separate from the
+    Developer Program Team ID `42X8P6QCN9` — Apple Media Services uses its own
+    identifier)*
+  - Follow-up: reply to the ack email using the same subject line, including
+    `Case-ID: 20152487`.
+- [ ] When Finance replies, finish adding the bank account
+- Fallback if Wise can't be added: use a traditional Hungarian bank account in the
+  company's name (a standard IBAN is always in Apple's directory).
+
+### Tax form — W-8BEN-E (done)
+
+Submitted as an **Organization** form for `NOVO-KUNST … Kft.`:
+- Chapter 3 status: **Corporation**; country: **Hungary**; Foreign TIN: `HU12184794`
+- No U.S. TIN (left blank — none required)
+- **Part III left empty / box 14 unchecked** — the US–Hungary income tax treaty was
+  terminated (no effect for withholding from 1 Jan 2024), so no treaty benefits are
+  claimed. Consequence: the default **30% US withholding** applies, but only to the
+  US-customer share of revenue; EU and rest-of-world sales are unaffected.
+
+### EU Digital Services Act — Trader status (done)
 
 App Store Connect requires every developer to declare a **Trader status** under the EU
-DSA. Because this is a **paid app, you are a Trader** — you're commercializing the app,
-and the "non-trader" exception only covers hobbyists with no intent to monetize.
+DSA. Because this is a **paid app, you are a Trader**.
 
-- [ ] Open the **Trader status** declaration in App Store Connect → select **Trader**
-- [ ] Provide the required contact info: **address (or P.O. Box)**, **phone**, **email**
-- [ ] Certify the app complies with applicable EU law
+- [x] Done — it lives under **Business → Compliance → Digital Services Act** (*not* a
+      separate menu). Status shows **Active** for 27 EU countries.
 
-> ⚠️ **This contact info is published publicly** on your App Store product page across all
-> 27 EU countries. As an individual you may use a **P.O. Box** instead of your home
-> address — decide this *before* submitting, since changes require re-verification.
+> ⚠️ **The contact info you entered there is published publicly** on your App Store
+> product page across all 27 EU countries. Changing it later requires re-verification.
 
 ### App Store Small Business Program (recommended)
 
-- [ ] Enrol in the **App Store Small Business Program**
-      (developer.apple.com → Agreements → App Store Small Business Program)
+- [ ] Enrol in the **App Store Small Business Program** — ⏳ *gated: the enrolment option
+      only becomes available once the **Paid Apps Agreement is Active** (i.e. after the
+      bank account is added). It is not a visible menu item on the Business page until
+      then — don't go hunting for it now.*
 - [ ] This drops Apple's commission from **30% → 15%** while you earn under $1M/year
 
 > VAT note: Apple is the merchant of record for App Store sales and collects/remits EU
@@ -69,22 +108,23 @@ and the "non-trader" exception only covers hobbyists with no intent to monetize.
 
 ---
 
-## Phase 2 — Create the app record
+## Phase 2 — Create the app record ✅ DONE
 
-In App Store Connect → **Apps** → **＋** → **New App**:
+App record created — **Paper Backgammon Scoreboard** (Apple ID `6771722520`).
 
-- [ ] Platform: **iOS**
-- [ ] Name: **Minimalistic Backgammon Scoreboard**
-      *("Backgammon Scoreboard" alone is already taken on the App Store; the
-      "Minimalistic" prefix makes it unique. The on-device icon name stays
-      "Backgammon Scoreboard" and does not have to match the App Store name.)*
-- [ ] Primary language: **English**
-- [ ] Bundle ID: select **`com.peterszasz.BackgammonScoreboard`** from the dropdown
-      *(If it's not listed: register it at developer.apple.com → Certificates, IDs &
-      Profiles → Identifiers → ＋, then come back.)*
-- [ ] SKU: any internal code, e.g. `backgammon-scoreboard-001`
-- [ ] User Access: **Full Access**
-- [ ] Click **Create**
+- [x] Platform: **iOS**
+- [x] Name: **Paper Backgammon Scoreboard**
+      *("Backgammon Scoreboard" alone is taken; "Minimalistic Backgammon Scoreboard" was
+      34 characters — over Apple's 30-char limit — so the final App Store name is
+      "Paper Backgammon Scoreboard" (27 chars). The on-device icon name stays
+      "Backgammon Scoreboard" and does not have to match.)*
+- [x] Primary language: **English (U.S.)**
+- [x] Bundle ID: **`com.peterszasz.BackgammonScoreboard`**
+      *(registered first in developer.apple.com → Certificates, Identifiers & Profiles →
+      Identifiers, as an Explicit App ID with no extra capabilities)*
+- [x] SKU: `backgammon-scoreboard-001`
+- [x] User Access: **Full Access**
+- [x] Click **Create**
 
 ---
 
@@ -93,41 +133,85 @@ In App Store Connect → **Apps** → **＋** → **New App**:
 On the app's **1.0 — Prepare for Submission** page.
 
 ### Text fields
-- [ ] **Subtitle** (≤30 chars) — e.g. `Tournament match scoreboard`
-- [ ] **Description** — adapt from `README.md`; lead with the "does one thing well" idea,
-      then the feature list
-- [ ] **Keywords** (≤100 chars, comma-separated, no spaces after commas) —
-      e.g. `backgammon,scoreboard,match,crawford,tournament,board game,score`
-- [ ] **Promotional text** (optional) — editable later without review
-- [ ] **Support URL** — `https://eszpee.github.io/BackgammonScoreboard/`
-- [ ] **Marketing URL** (optional) — leave blank or use the support URL
-- [ ] **Copyright** — e.g. `2026 Péter Szász`
+
+- [x] **Subtitle** (≤30 chars):
+  ```
+  Pocket scoreboard for matches
+  ```
+- [x] **Description**:
+  ```
+  A minimal scoreboard for in-person backgammon matches. Designed to do
+  one thing well: track the match score with Crawford rule support, and
+  nothing else. No player names, no timers, no doubling cube — if it
+  wouldn't be on a paper scoreboard, it isn't here. It's for casual play
+  across the board, not tournament clock-and-clipboard duty.
+
+  FEATURES
+
+  • Two score panels — tap either side to add a point
+  • Flip-chart animation — scores animate with a physical flip-card
+    effect, rotating around the coil axis
+  • Score correction — long-press a panel to decrease a score by one
+    (confirmation required)
+  • Match length — tap the center when scores are 0–0 to cycle forward
+    (3, 5, 7 … 21); long-press to cycle backward
+  • New match — tap or long-press the center while a match is in progress
+    to reset scores
+  • Crawford rule — automatically detected and displayed; transitions to
+    Post-Crawford after the following game
+  • Match over alert — shown when a player reaches the target score
+  • State persistence — your match is silently restored when reopened
+  • Screen always on — the display stays awake while the app is open
+  • Haptic feedback — taps, corrections, and match events have distinct
+    feedback
+  • Light and dark themes — follows the system appearance by default;
+    override in iOS Settings
+  • Accessibility — VoiceOver labels and roles on all interactive elements
+  • iPhone, landscape-only
+
+  PRIVACY
+
+  This app collects no data, makes no network requests, and uses no
+  analytics or tracking.
+  ```
+- [x] **Keywords** (≤100 chars, comma-separated, no spaces after commas):
+  ```
+  backgammon,scoreboard,match,crawford,board,game,score,points,counter,live,tournament
+  ```
+- [x] **Promotional text** (≤170 chars, editable later without review):
+  ```
+A pocket scoreboard for live backgammon. Tap to score, Crawford rule, and flip-chart animation. Minimalistic on purpose: no clock, no clutter, just the score.
+  ```
+- [x] **Support URL** — `https://eszpee.github.io/BackgammonScoreboard/`
+- [x] **Marketing URL** (optional) — leave blank or use the support URL
+- [x] **Copyright**:
+  ```
+  2026 Péter Szász
+  ```
 
 ### Screenshots
-- [ ] Upload the files from `screenshots/` into the **iPhone 6.9" display** slot
+- [x] Upload the files from `screenshots/` into the **iPhone 6.9" display** slot
       *(they are 2868×1320, landscape — the current required size)*
-- [ ] Pick up to 10 — choose the dark set, the light set, or a mix
-- [ ] First 1–3 screenshots matter most (shown in search results)
+- [x] Pick up to 10 — choose the dark set, the light set, or a mix
+- [x] First 1–3 screenshots matter most (shown in search results)
 
 ### Categorisation
-- [ ] Primary category: **Games** → secondary genre **Board**
-- [ ] **Age Rating** — open the questionnaire, answer all "None"/"No" → resolves to **4+**
+- [x] Primary category: **Games** → secondary genre **Board**
+- [x] **Age Rating** — open the questionnaire, answer all "None"/"No" → resolves to **4+**
 
 ### App Privacy (separate "App Privacy" section in the sidebar)
-- [ ] Privacy Policy URL — `https://eszpee.github.io/BackgammonScoreboard/privacy.html`
-- [ ] Data collection question — answer **"No, we do not collect data from this app"**
+- [x] Privacy Policy URL — `https://eszpee.github.io/BackgammonScoreboard/privacy.html`
+- [x] Data collection question — answer **"No, we do not collect data from this app"**
       *(matches the empty `NSPrivacyCollectedDataTypes` in `PrivacyInfo.xcprivacy`)*
 
 ### Pricing and Availability (separate section)
-- [ ] Set a **price** — recommended **$2.99** tier (Apple auto-localizes it to every
-      currency; you pick only one tier)
-- [ ] Choose **availability** — keep the **EU enabled** so the Phase 1 Trader setup is
-      worthwhile; otherwise all countries or a subset
-- [ ] Note: the price can be changed anytime later, freely
+- [x] Set a **price** — **999 HUF** base tier (Apple auto-localizes to every currency)
+- [x] Choose **availability** — **all countries** (EU included, so the Phase 1 Trader
+      setup remains worthwhile)
+- [x] Note: the price can be changed anytime later, freely
 
-> Why $2.99: a fair price for a focused, polished niche tool. $0.99 undervalues it;
-> $4.99+ is a stretch for a first app with no reviews yet. You could launch lower (e.g.
-> $1.99) to gather early reviews and raise later if you prefer.
+> Originally drafted at $2.99; launched at **999 HUF** base (≈ $2.79 / €2.49) — a fair
+> price for a focused niche tool, with EU sales enabled to make the Trader setup pay off.
 
 ---
 
@@ -160,7 +244,7 @@ On the app's **1.0 — Prepare for Submission** page.
       *(the Phase 0 Info.plist change should make this not even appear)*
 - [ ] Under **Internal Testing**, create a group / add yourself as a tester
 - [ ] On your iPhone: install **TestFlight** from the App Store, sign in with the **same
-      Apple ID**, install the Minimalistic Backgammon Scoreboard build
+      Apple ID**, install the Paper Backgammon Scoreboard build
 
 ### On-device verification (do all of these, in landscape)
 - [ ] Tap each side panel — score increases, flip animation plays

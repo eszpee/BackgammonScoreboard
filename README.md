@@ -1,4 +1,4 @@
-# Minimalistic Backgammon Scoreboard
+# Paper Backgammon Scoreboard
 
 A minimal iOS scoreboard for tournament backgammon matches. Designed to do one thing well: track match scores with Crawford rule support. No player names, no timers, no doubling cube — if it wouldn't be on a paper scoreboard, it isn't here.
 
