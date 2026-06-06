@@ -9,12 +9,13 @@ This is a first submission, so each step is spelled out. Check boxes off as you 
 | Item | Value |
 |---|---|
 | Bundle ID | `com.peterszasz.BackgammonScoreboard` |
-| Apple Team ID | `42X8P6QCN9` |
+| Apple Team ID (publishing) | `8A5T6N3965` — NOVO-KUNST org (paid Developer Program) |
+| Personal Team (free, do NOT use) | `42X8P6QCN9` — Péter Szász personal Apple ID |
 | App Store name | Paper Backgammon Scoreboard |
 | Apple ID (App Store Connect) | `6771722520` |
 | Home-screen name | Backgammon Scoreboard (truncates to "Backgammon…") |
 | Marketing version | `1.0` |
-| Build number | `1` |
+| Build number | `2` (was `1`; bumped to re-upload with the fixed, alpha-free app icon) |
 | Min iOS | 15.1 — iPhone only, landscape only |
 | Privacy policy URL | https://eszpee.github.io/BackgammonScoreboard/privacy.html |
 | Support URL | https://eszpee.github.io/BackgammonScoreboard/ |
@@ -38,41 +39,48 @@ This is a first submission, so each step is spelled out. Check boxes off as you 
 In App Store Connect → **Business** (also called *Agreements, Tax, and Banking*):
 
 - [x] Accept the **Paid Applications Agreement** — done; appears under **Agreements**
-      with status **"Pending User Info"**
-- [ ] Add **bank account** details for payouts — ⏳ *blocked: Wise account, see note below*
+- [x] Add **bank account** details for payouts — ✅ *done: the Wise EUR account was
+      accepted (see note below)*
 - [x] Complete **tax forms** — W-8BEN-E submitted, status **Active**
 - [x] Declare **Trader status** (EU DSA) — done, status **Active** (see note below)
-- [ ] Confirm the Paid Apps agreement shows **Active** — ⏳ *it flips from "Pending User
-      Info" to "Active" automatically once the bank account is added; the bank is the only
-      missing item*
+- [x] Confirm the Paid Apps agreement shows **Active** — ✅ *flipped to **Active** once the
+      bank account was added; the app can now go on sale* 🎉
 
-> You can start the other phases in parallel — but the app cannot go *on sale* until this
-> is Active.
+> ✅ **Phase 1 is complete** — all agreements, tax, banking, and Trader status are done and
+> the Paid Apps agreement is Active. The remaining gate to launch is App Review (Phase 6).
 
-### Bank account — Wise EUR account (in progress)
+### Bank account — Wise EUR account ✅ DONE
 
 Account: Wise (Wise Europe SA), Belgium — IBAN `BE96 9056 7675 9105`, BIC `TRWIBEB1XXX`,
 account holder `NOVO-KUNST Kft.`
 
-- App Store Connect's "Add Bank Account" flow returned **"We could not find any banks
-  matching the search criteria"** — Apple's bank directory does not list Wise's Belgian
-  entity.
-- Apple Developer Support (case `102895694220`, agent Jennifer) replied with a generic
-  "try a different branch" message and **referred to the Finance team** via *Contact Us
-  About Financial Information*.
-- ⏳ **Finance team case submitted** (Subject: Banking setup → Category: Add or edit
-  banking information). Vendor ID left blank (none assigned yet — agreement still
-  Pending). Awaiting reply.
-  - Finance Case-ID: `20152487` (Apple Media Services Finance Support,
-    `iTSPayments@apple.com`)
-  - Media Services Team ID shown on the ack: `8A5T6N3965` *(note: separate from the
-    Developer Program Team ID `42X8P6QCN9` — Apple Media Services uses its own
-    identifier)*
-  - Follow-up: reply to the ack email using the same subject line, including
-    `Case-ID: 20152487`.
-- [ ] When Finance replies, finish adding the bank account
-- Fallback if Wise can't be added: use a traditional Hungarian bank account in the
-  company's name (a standard IBAN is always in Apple's directory).
+- [x] **Wise account accepted** — the Belgian Wise EUR account was successfully added in
+      App Store Connect, and the Paid Apps agreement flipped to **Active**. The Hungarian
+      fallback was not needed.
+
+> 💡 **The real fix (no Apple intervention actually needed):** App Store Connect's Belgian
+> form asks for a **bank identifier** and a **dash-formatted account number**, not the IBAN
+> — these are just *derived from the IBAN's BBAN* (the 12 digits after `BE` + check digits).
+> Belgian BBAN = `BBB AAAAAAA CC` → bank identifier `BBB`, account number entered as
+> `BBB-AAAAAAA-CC` (**include the dashes**).
+>
+> For our IBAN `BE96 9056 7675 9105`, BBAN = `905676759105` → `905` / `6767591` / `05`:
+> - Bank identifier: **905**
+> - Account number: **905-6767591-05**
+>
+> (Reference: xe.com Belgian IBAN calculator breaks any IBAN into these parts.)
+
+History (for reference — resolved):
+- App Store Connect's "Add Bank Account" flow had initially returned **"We could not find
+  any banks matching the search criteria"** — Apple's bank directory did not surface Wise's
+  Belgian entity at first.
+- Apple Developer Support (case `102895694220`, agent Jennifer) gave a generic "try a
+  different branch" message and **referred to the Finance team** via *Contact Us About
+  Financial Information*.
+- A Finance team case was submitted (Finance Case-ID: `20152487`, Apple Media Services
+  Finance Support, `iTSPayments@apple.com`; Team ID `8A5T6N3965` — the NOVO-KUNST org
+  Developer Program team).
+- Resolved: the Wise account went through and banking is now complete.
 
 ### Tax form — W-8BEN-E (done)
 
@@ -97,10 +105,11 @@ DSA. Because this is a **paid app, you are a Trader**.
 
 ### App Store Small Business Program (recommended)
 
-- [ ] Enrol in the **App Store Small Business Program** — ⏳ *gated: the enrolment option
-      only becomes available once the **Paid Apps Agreement is Active** (i.e. after the
-      bank account is added). It is not a visible menu item on the Business page until
-      then — don't go hunting for it now.*
+- [x] Enrol in the **App Store Small Business Program** — ✅ *enrolled; status **being
+      reviewed** by Apple (confirmation email received). Enrolled via the dedicated page —
+      it is NOT on the Business page:*
+      **https://developer.apple.com/app-store/small-business-program/ → "Enrol"**. *The 15%
+      rate applies from the fiscal month the enrolment is approved.*
 - [ ] This drops Apple's commission from **30% → 15%** while you earn under $1M/year
 
 > VAT note: Apple is the merchant of record for App Store sales and collects/remits EU
@@ -203,6 +212,14 @@ A pocket scoreboard for live backgammon. Tap to score, Crawford rule, and flip-c
 - [x] Privacy Policy URL — `https://eszpee.github.io/BackgammonScoreboard/privacy.html`
 - [x] Data collection question — answer **"No, we do not collect data from this app"**
       *(matches the empty `NSPrivacyCollectedDataTypes` in `PrivacyInfo.xcprivacy`)*
+- [ ] ⚠️ **Click _Publish_** in the App Privacy section — filling the answers is not enough;
+      until it's published, "Add for Review" fails with *"an Admin must provide information
+      about the app's privacy practices."*
+
+### Content Rights (App Information page — easy to miss)
+- [ ] App → **General → App Information** → **Content Rights Information** →
+      **"No, it does not contain, show, or access third-party content"** → Save.
+      *Required for every app; "Add for Review" blocks without it.*
 
 ### Pricing and Availability (separate section)
 - [x] Set a **price** — **999 HUF** base tier (Apple auto-localizes to every currency)
@@ -217,34 +234,61 @@ A pocket scoreboard for live backgammon. Tap to score, Crawford rule, and flip-c
 
 ## Phase 4 — Build, archive & upload from Xcode
 
-- [ ] In a terminal: `cd ios && bundle exec pod install`
-- [ ] Open **`ios/BackgammonScoreboard.xcworkspace`** *(the workspace, NOT the .xcodeproj)*
-- [ ] Select the **BackgammonScoreboard** target → **Signing & Capabilities**:
-  - [ ] "Automatically manage signing" is **ON**
-  - [ ] Team = **Péter Szász (42X8P6QCN9)**
-  - [ ] No red signing errors *(Xcode creates the Distribution cert/profile for you)*
-- [ ] Set the run destination to **"Any iOS Device (arm64)"** (top bar, not a simulator)
-- [ ] Menu: **Product → Archive** — wait for the build to finish
-- [ ] The **Organizer** window opens with the new archive selected
-- [ ] Click **Distribute App** → **App Store Connect** → **Upload** → accept defaults
-- [ ] Wait for the upload to succeed, then wait for the build to finish **processing** in
+- [x] In a terminal: `cd ios && bundle exec pod install`
+- [x] Open **`ios/BackgammonScoreboard.xcworkspace`** *(the workspace, NOT the .xcodeproj)*
+- [x] Select the **BackgammonScoreboard** target → **Signing & Capabilities**:
+  - [x] "Automatically manage signing" is **ON**
+  - [x] Team = **NOVO-KUNST Beruházási, Számítástechnikai… (8A5T6N3965)** — *not* the
+        "Péter Szász (Personal Team)" entry, which is the free tier and cannot submit
+  - [x] No red signing errors *(Xcode creates the Distribution cert/profile for you)*
+- [x] Set the run destination to **"Any iOS Device (arm64)"** (top bar, not a simulator)
+- [x] Menu: **Product → Archive** — wait for the build to finish
+- [x] The **Organizer** window opens with the new archive selected
+- [x] Click **Distribute App** → **App Store Connect** → **Upload** → accept defaults
+- [x] Wait for the upload to succeed, then wait for the build to finish **processing** in
       App Store Connect (minutes to ~1 hour — you'll get an email)
 
 > If you ever need to upload again, first **bump the build number**
 > (`CURRENT_PROJECT_VERSION` in the project settings) to a higher value. The marketing
 > version `1.0` can stay.
 
+> 🔁 **Build 2 re-archive (icon fix):** build `1` shipped with an alpha-channel marketing
+> icon, so App Store Connect showed the placeholder grid. Fixed `1024.png` → RGB, bumped
+> `CURRENT_PROJECT_VERSION` to `2`, re-archived (`xcodebuild … archive`), and uploaded the
+> new build via the **Xcode Organizer → Distribute App** GUI (CLI export failed with "No
+> Accounts / No signing certificate" — the command-line tools can't see the Xcode account;
+> the Organizer can). Marketing version stayed `1.0`.
+
 ---
 
 ## Phase 5 — TestFlight beta
 
-- [ ] App Store Connect → your app → **TestFlight** tab → confirm the build is listed and
+> TestFlight does **not** require the Paid Apps agreement or a bank account — those only
+> gate the app going *on sale*. You can beta test now while the banking case is pending.
+
+- [x] App Store Connect → your app → **TestFlight** tab → confirm the build is listed and
       no longer "Processing"
-- [ ] If asked for **Export Compliance**, answer **No**
+- [x] If asked for **Export Compliance**, answer **No**
       *(the Phase 0 Info.plist change should make this not even appear)*
-- [ ] Under **Internal Testing**, create a group / add yourself as a tester
-- [ ] On your iPhone: install **TestFlight** from the App Store, sign in with the **same
+- [x] Under **Internal Testing**, create a group / add yourself as a tester
+- [x] On your iPhone: install **TestFlight** from the App Store, sign in with the **same
       Apple ID**, install the Paper Backgammon Scoreboard build
+
+### Inviting a friend (internal tester)
+
+Internal testers get every new build **instantly** — no Beta App Review wait. The trade-off
+is the friend must be added to the App Store Connect team (scoped by role).
+
+- [x] App Store Connect → **Users and Access** → **＋** → invite the friend by email.
+  - [x] Role: a limited role is enough for TestFlight (e.g. **Developer** or **App
+        Manager**; even **Customer Support** works). Note this grants them access to the
+        NOVO-KUNST App Store Connect account, scoped to that role.
+- [ ] Friend accepts the email invite and finishes setting up their Apple ID on the team.
+- [x] App Store Connect → app → **TestFlight** → **Internal Testing** group → tick the
+      checkbox next to the friend to enable them as a tester for that group.
+- [ ] Friend installs the **TestFlight** app from the App Store, signs in with the **same
+      Apple ID they were invited with**, and installs the build.
+- [ ] Every later upload reaches internal testers automatically (no review).
 
 ### On-device verification (do all of these, in landscape)
 - [ ] Tap each side panel — score increases, flip animation plays
@@ -262,20 +306,21 @@ A pocket scoreboard for live backgammon. Tap to score, Crawford rule, and flip-c
 
 ---
 
-## Phase 6 — Submit for App Store review
+## Phase 6 — Submit for App Store review ✅ DONE
 
-Back on the **1.0 — Prepare for Submission** page:
+> 🎉 **Submitted 6 Jun 2026, 17:39** — status **Waiting for Review**.
+> Submission ID `0a800097-19ff-464a-b1aa-a21812949349`, build **1.0 (2)**, submitted by
+> Péter Szász. To withdraw: Distribution → the submission → **Cancel Submission**.
 
-- [ ] In the **Build** section, click **＋** and select the TestFlight-verified build
-- [ ] Re-check every section has a green check: metadata, screenshots, pricing,
-      age rating, App Privacy
-- [ ] **App Review Information**:
-  - [ ] Contact name, email, phone
-  - [ ] Sign-in required? **No** — leave demo account blank (the app has no login)
-  - [ ] Notes (optional but helpful): *"Landscape-only tournament scoreboard. Tap a side
-        panel to add a point; tap the center at 0–0 to set match length."*
-- [ ] **Version Release**: choose **Automatically** or **Manually** release after approval
-- [ ] Click **Add for Review** → **Submit for Review**
+> ✅ **Build 2 processed** — showed **Complete / Ready to Submit** in TestFlight (the build
+> thumbnails render the real icon, confirming the alpha fix). Two gates had to be cleared
+> first: **App Privacy published** and **Content Rights** set (both in Phase 3).
+
+- [x] In the **Build** section, selected the TestFlight-verified build (**2**)
+- [x] Every section green: metadata, screenshots, pricing, age rating, App Privacy
+- [x] **App Review Information** — contact info; Sign-in required **No**
+- [x] **Version Release** chosen
+- [x] **Add for Review** → **Submit for Review**
 
 ---
 
@@ -297,7 +342,9 @@ Back on the **1.0 — Prepare for Submission** page:
 | Problem | Fix |
 |---|---|
 | Bundle ID not in the New App dropdown | Register it at developer.apple.com → Identifiers |
-| Signing errors in Xcode | Ensure you're signed into Xcode with the Apple ID on team `42X8P6QCN9`; toggle "Automatically manage signing" off and on |
+| Signing errors in Xcode | Ensure the selected Team is **NOVO-KUNST (`8A5T6N3965`)**, not "Péter Szász (Personal Team)" (`42X8P6QCN9`, free tier — can't register the bundle ID); the Apple ID logged into Xcode → Settings → Accounts must be a member of the NOVO-KUNST team. Toggle "Automatically manage signing" off and on |
 | "Archive" is greyed out | Run destination must be "Any iOS Device", not a simulator |
 | Upload rejected — duplicate build | Bump `CURRENT_PROJECT_VERSION` and re-archive |
 | Build stuck "Processing" > 1h | Usually resolves on its own; check email for any compliance prompt |
+| "Upload completed **with warnings**" → *Upload Symbols Failed* for React.framework / ReactNativeDependencies.framework / hermesvm.framework | **Harmless — the upload succeeded.** Just missing dSYMs for React Native's prebuilt frameworks (they ship without them). dSYMs only symbolicate crash reports; this app has no crash reporting, so it's irrelevant. Does not block processing, TestFlight, or review. Click **Done**. |
+| App shows the placeholder grid icon in App Store Connect | The 1024×1024 marketing icon had an **alpha channel** — Apple silently drops it (and emails an "Invalid App Store Icon" warning). Fixed: `1024.png` flattened to RGB (no alpha). The new icon only appears after you **bump the build number, re-archive & re-upload** (Phase 4) — App Store Connect reads the icon from the build. |
