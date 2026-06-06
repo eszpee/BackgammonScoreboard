@@ -17,6 +17,9 @@
     "react-native-keep-awake": "^4.0.0",
     "react-native-safe-area-context": "^5.5.2"
   },
+  "overrides": {
+    "qs": "^6.15.2"
+  },
   "devDependencies": {
     "@babel/core": "^7.25.2",
     "@babel/preset-env": "^7.25.3",
