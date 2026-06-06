@@ -80,3 +80,6 @@ yarn-error.log
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+# Internal submission notes — contains bank/tax details, must NOT be public
+app-submission.md
